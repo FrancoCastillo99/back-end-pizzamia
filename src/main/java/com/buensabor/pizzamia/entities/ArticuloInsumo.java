@@ -1,0 +1,47 @@
+package com.buensabor.pizzamia.entities;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ArticuloInsumo implements Serializable{
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @NotNull
+    private String denominacion;
+    @NotNull
+    private Double precioCompra;
+    @NotNull
+    private Double precioVenta;
+    @NotNull
+    private  Boolean esParaElaborar;
+
+    @NotNull
+    @OneToOne
+    @JoinColumn(name = "stockInsumo_id")
+    private StockInsumo stockInsumo;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "unidadMedida_id")
+    private UnidadMedida unidadMedidad;
+
+    @NotNull
+    @ManyToOne
+    @JoinColumn(name ="rubro_id")
+    private Rubro rubro;
+
+    @NotNull
+    @OneToOne
+    @JoinColumn(name = "imagen_id")
+    private Imagen imagen;
+}
