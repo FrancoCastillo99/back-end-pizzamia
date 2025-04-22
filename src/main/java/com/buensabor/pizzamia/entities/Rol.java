@@ -1,38 +1,26 @@
 package com.buensabor.pizzamia.entities;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+
+
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Domicilio implements Serializable {
 
+public class Rol implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    private String calle;
-
-    @NotNull
-    private Integer numero;
-
-    @NotNull
-    private Integer codigoPostal;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "localidad_id", nullable = false)
-    private Localidad localidad;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+    private String denominacion;
 }

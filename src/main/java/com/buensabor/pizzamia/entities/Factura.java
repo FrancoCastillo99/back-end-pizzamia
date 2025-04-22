@@ -7,29 +7,36 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Domicilio implements Serializable {
 
+public class Factura implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    private String calle;
+    private LocalDate fechaFacturacion;
+    @NotNull
+    private Double subTotal;
+    @NotNull
+    private Double costoEnvio;
+    @NotNull
+    private Double total;
 
     @NotNull
-    private Integer numero;
+    @OneToOne
+    @JoinColumn(name = "pedido_id")
+    private PedidoVenta pedidoVenta;
 
-    @NotNull
-    private Integer codigoPostal;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "localidad_id", nullable = false)
-    private Localidad localidad;
+    @OneToOne
+    @JoinColumn(name = "mp_id")
+    private MercadoPagoDatos mpDatos;
 
     @NotNull
     @ManyToOne

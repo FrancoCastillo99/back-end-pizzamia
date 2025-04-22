@@ -1,5 +1,4 @@
 package com.buensabor.pizzamia.entities;
-
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -7,32 +6,28 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.util.List;
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Domicilio implements Serializable {
-
+public class Promocion implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    private String calle;
+    private LocalDate fechaInicio;
+    @NotNull
+    private LocalDate fechaFin;
+    @NotNull
+    private Integer descuento;
 
     @NotNull
-    private Integer numero;
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "promocion_id")
+    private List<PromocionDetalle> detalles;
 
-    @NotNull
-    private Integer codigoPostal;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "localidad_id", nullable = false)
-    private Localidad localidad;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
 }
