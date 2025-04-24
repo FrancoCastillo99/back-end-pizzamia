@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -43,4 +44,14 @@ public class ArticuloManufacturado implements Serializable{
     @ManyToOne
     @JoinColumn(name ="rubro_id")
     private Rubro rubro;
+
+    @NotNull
+    private LocalDateTime fechaAlta;
+
+    private LocalDateTime fechaBaja;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaAlta = LocalDateTime.now();
+    }
 }

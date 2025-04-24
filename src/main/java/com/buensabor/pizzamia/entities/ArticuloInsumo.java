@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -26,14 +27,14 @@ public class ArticuloInsumo implements Serializable{
     private  Boolean esParaElaborar;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "stockInsumo_id")
     private StockInsumo stockInsumo;
 
     @NotNull
     @ManyToOne
     @JoinColumn(name = "unidadMedida_id")
-    private UnidadMedida unidadMedidad;
+    private UnidadMedida unidadMedida;
 
     @NotNull
     @ManyToOne
@@ -41,7 +42,17 @@ public class ArticuloInsumo implements Serializable{
     private Rubro rubro;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "imagen_id")
     private Imagen imagen;
+
+    @NotNull
+    private LocalDateTime fechaAlta;
+
+    private LocalDateTime fechaBaja;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaAlta = LocalDateTime.now();
+    }
 }

@@ -26,8 +26,8 @@ public class Sucursal implements Serializable {
     @NotNull
     private LocalTime horarioCierre;
 
-    @NotNull
+    /* @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "domicilio_id", nullable = false)
-    private Domicilio domicilioSucursal;
+    private Domicilio domicilioSucursal;*/
 }
