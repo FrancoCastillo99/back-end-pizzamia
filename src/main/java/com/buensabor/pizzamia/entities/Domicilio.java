@@ -5,8 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -30,9 +34,4 @@ public class Domicilio implements Serializable {
     @ManyToOne
     @JoinColumn(name = "localidad_id", nullable = false)
     private Localidad localidad;
-
-    @NotNull
-    @ManyToOne
-    @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
 }

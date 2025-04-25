@@ -33,14 +33,12 @@ public class PedidoVenta implements Serializable{
     private Estado estado;
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "tipoEnvio_id")
+    @Enumerated(EnumType.STRING)
     private TipoEnvio tipoEnvio;
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "formaPago_id")
-    private FormaPago formaPago;
+    @Enumerated(EnumType.STRING)
+    private TipoPago tipoPago;
 
     @NotNull
     @OneToMany(cascade = CascadeType.ALL)

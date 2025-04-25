@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -33,7 +33,7 @@ public class Empleado implements Serializable {
     private String email;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private Usuario user;
 
@@ -41,4 +41,14 @@ public class Empleado implements Serializable {
     @ManyToOne
     @JoinColumn(name = "rol_id")
     private Rol rol;
+
+    @NotNull
+    private LocalDateTime fechaAlta;
+
+    private LocalDateTime fechaBaja;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaAlta = LocalDateTime.now();
+    }
 }

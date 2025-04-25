@@ -8,7 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -23,4 +23,14 @@ public class Rol implements Serializable {
 
     @NotNull
     private String denominacion;
+
+    @NotNull
+    private LocalDateTime fechaAlta;
+
+    private LocalDateTime fechaBaja;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaAlta = LocalDateTime.now();
+    }
 }

@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 
 
 @Entity
@@ -34,12 +36,18 @@ public class Factura implements Serializable {
     @JoinColumn(name = "pedido_id")
     private PedidoVenta pedidoVenta;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "mp_id")
     private MercadoPagoDatos mpDatos;
+
+    @NotNull
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "factura_id")
+    private List<FacturaDetalle> detalles;
 
     @NotNull
     @ManyToOne
     @JoinColumn(name = "cliente_id")
     private Cliente cliente;
+
 }

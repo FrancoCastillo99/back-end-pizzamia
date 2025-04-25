@@ -36,7 +36,7 @@ public class ArticuloManufacturado implements Serializable{
     private List<ArticuloManufacturadoDetalle> detalles;
 
     @NotNull
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "imagen_id")
     private Imagen imagen;
 

@@ -32,8 +32,7 @@ public class ArticuloInsumo implements Serializable{
     private StockInsumo stockInsumo;
 
     @NotNull
-    @ManyToOne
-    @JoinColumn(name = "unidadMedida_id")
+    @Enumerated(EnumType.STRING)
     private UnidadMedida unidadMedida;
 
     @NotNull
