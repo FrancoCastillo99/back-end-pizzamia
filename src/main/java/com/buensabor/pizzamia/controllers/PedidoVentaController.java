@@ -1,6 +1,5 @@
 package com.buensabor.pizzamia.controllers;
 
-
 import com.buensabor.pizzamia.entities.PedidoVenta;
 import com.buensabor.pizzamia.services.PedidoVentaService;
 import jakarta.validation.Valid;
@@ -19,14 +18,17 @@ public class PedidoVentaController {
     private PedidoVentaService pedidoVentaService;
 
     @GetMapping
-    public ResponseEntity<List<PedidoVenta>> getAll() {
+    public ResponseEntity<List<PedidoVenta>> getAll(@RequestParam(required = false) String estado) {
+        if (estado != null) {
+            return ResponseEntity.ok(pedidoVentaService.findByEstado(estado));
+        }
         return ResponseEntity.ok(pedidoVentaService.findAll());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<PedidoVenta> getRubroById(@PathVariable Long id) {
+    public ResponseEntity<PedidoVenta> getPedidoById(@PathVariable Long id) {
         return pedidoVentaService.findById(id)
-                .map(rubro -> new ResponseEntity<>(rubro, HttpStatus.OK))
+                .map(pedido -> new ResponseEntity<>(pedido, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 

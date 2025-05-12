@@ -7,26 +7,40 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
+// RegistroInsumo.java
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StockInsumo implements Serializable {
+public class RegistroInsumo implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotNull
-    private Integer stockActual;
+    private Integer cantidad;
 
     @NotNull
-    private Integer stockMinimo;
+    @Enumerated(EnumType.STRING)
+    private TipoMovimiento tipoMovimiento;
 
     @NotNull
-    private Integer stockMaximo;
+    private LocalDateTime fechaRegistro;
+
+    @ManyToOne
+    @JoinColumn(name = "articulo_insumo_id", nullable = false)
+    private ArticuloInsumo articuloInsumo;
 
     @ManyToOne
     @JoinColumn(name = "sucursal_id", nullable = false)
     private Sucursal sucursal;
+
+    private String motivo;
+
+    @PrePersist
+    public void prePersist() {
+        this.fechaRegistro = LocalDateTime.now();
+    }
 }

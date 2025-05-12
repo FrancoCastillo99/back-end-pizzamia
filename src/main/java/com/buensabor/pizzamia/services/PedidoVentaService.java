@@ -1,7 +1,5 @@
 package com.buensabor.pizzamia.services;
 
-
-
 import com.buensabor.pizzamia.entities.PedidoVenta;
 import com.buensabor.pizzamia.repositories.PedidoVentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,11 +21,15 @@ public class PedidoVentaService {
         return pedidoVentaRepository.findById(id);
     }
 
+    public List<PedidoVenta> findByEstado(String estado) {
+        return pedidoVentaRepository.findByEstadoDenominacion(estado);
+    }
+
     public PedidoVenta create(PedidoVenta pedidoVenta) {
         try {
             return pedidoVentaRepository.save(pedidoVenta);
         } catch (Exception e) {
-            throw new RuntimeException("Error al guardar el rubro: " + e.getMessage());
+            throw new RuntimeException("Error al guardar el pedido: " + e.getMessage());
         }
     }
 }
