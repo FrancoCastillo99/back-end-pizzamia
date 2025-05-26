@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class RegistroInsumoService {
     @Autowired
@@ -38,5 +40,13 @@ public class RegistroInsumoService {
 
         // Guardar el registro de movimiento
         return registroInsumoRepository.save(registro);
+    }
+
+    public List<RegistroInsumo> findByArticuloInsumoId(Long insumoId) {
+        // Verificar que el insumo existe primero
+        if (!articuloInsumoRepository.existsById(insumoId)) {
+            throw new RuntimeException("Insumo no encontrado con ID: " + insumoId);
+        }
+        return registroInsumoRepository.findByArticuloInsumoIdOrderByFechaRegistroDesc(insumoId);
     }
 }

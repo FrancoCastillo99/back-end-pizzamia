@@ -22,9 +22,8 @@ public class PedidoVenta implements Serializable{
 
     @NotNull
     private LocalDateTime horaEstimadaFinalizacion;
-    @NotNull
+
     private Double total;
-    @NotNull
     private Double totalCosto;
 
     @NotNull

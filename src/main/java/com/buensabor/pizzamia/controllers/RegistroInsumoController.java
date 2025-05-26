@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,4 +31,16 @@ public class RegistroInsumoController {
                             "detalle", e.getMessage()));
         }
     }
+
+    @GetMapping("/insumo/{insumoId}")
+    public ResponseEntity<?> getMovimientosPorInsumo(@PathVariable Long insumoId) {
+        try {
+            List<RegistroInsumo> movimientos = registroInsumoService.findByArticuloInsumoId(insumoId);
+            return ResponseEntity.ok(movimientos);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+
 }

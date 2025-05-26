@@ -31,4 +31,6 @@ public class MercadoPagoDatos implements Serializable{
     private String status;
     @NotNull
     private String status_detail;
+
+    private String externalReference;
 }

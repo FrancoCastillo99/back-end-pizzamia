@@ -1,11 +1,9 @@
 package com.buensabor.pizzamia.services;
 
-import com.buensabor.pizzamia.entities.Factura;
-import com.buensabor.pizzamia.entities.FacturaDetalle;
-import com.buensabor.pizzamia.entities.PedidoVenta;
-import com.buensabor.pizzamia.entities.PedidoVentaDetalle;
-import com.buensabor.pizzamia.entities.TipoEnvio;
+import com.buensabor.pizzamia.entities.*;
 import com.buensabor.pizzamia.repositories.FacturaRepository;
+import com.buensabor.pizzamia.repositories.MercadoPagoDatosRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -14,19 +12,15 @@ import java.util.List;
 
 @Service
 public class FacturaService {
+    @Autowired
+    private FacturaRepository facturaRepository;
 
-    private final FacturaRepository facturaRepository;
-
-    public FacturaService(FacturaRepository facturaRepository) {
-        this.facturaRepository = facturaRepository;
-    }
+    @Autowired
+    private MercadoPagoDatosRepository mercadoPagoDatosRepository;
 
     public Factura generarFacturaDesdePedido(PedidoVenta pedidoVenta) {
-        double subTotal = pedidoVenta.getDetalles().stream()
-                .mapToDouble(PedidoVentaDetalle::getSubTotal)
-                .sum();
-
-        double costoEnvio = pedidoVenta.getTipoEnvio() == TipoEnvio.DELIVERY ? 500.0 : 0.0;
+        double subTotal = pedidoVenta.getTotal();
+        double costoEnvio = pedidoVenta.getTipoEnvio() == TipoEnvio.DELIVERY ? 1500.0 : 0.0;
         double total = subTotal + costoEnvio;
 
         Factura factura = new Factura();
@@ -37,6 +31,20 @@ public class FacturaService {
         factura.setPedidoVenta(pedidoVenta);
         factura.setCliente(pedidoVenta.getCliente());
 
+        // Si el pago es por MercadoPago, vincular con los datos de la transacción
+        if (pedidoVenta.getTipoPago() == TipoPago.MERCADOPAGO) {
+            // Buscar datos de MercadoPago asociados a este pedido
+            MercadoPagoDatos mpDatos = mercadoPagoDatosRepository.findByExternalReference(pedidoVenta.getId().toString())
+                    .orElseThrow(() -> new RuntimeException("No se encontraron datos de MercadoPago para el pedido"));
+
+            // Verificar que el estado sea aprobado
+            if (!"approved".equals(mpDatos.getStatus())) {
+                throw new RuntimeException("No se puede facturar: el pago no está aprobado");
+            }
+
+            factura.setMpDatos(mpDatos);
+        }
+
         // Agregar los detalles de la factura
         List<FacturaDetalle> detalles = new ArrayList<>();
         for (PedidoVentaDetalle detalle : pedidoVenta.getDetalles()) {
@@ -44,22 +52,19 @@ public class FacturaService {
             facturaDetalle.setCantidad(detalle.getCantidad());
             facturaDetalle.setSubTotal(detalle.getSubTotal());
 
-            // Asignar el insumo o manufacturado correspondiente
-            if (detalle.getArticuloInsumo() != null) {
-                facturaDetalle.setArticuloInsumo(detalle.getArticuloInsumo());
-            }
+            // Transferir referencias a los artículos según corresponda
             if (detalle.getArticuloManufacturado() != null) {
                 facturaDetalle.setArticuloManufacturado(detalle.getArticuloManufacturado());
-            }
-            /*if (detalle.getPromocion() != null) {
+            } else if (detalle.getArticuloInsumo() != null) {
+                facturaDetalle.setArticuloInsumo(detalle.getArticuloInsumo());
+            } else if (detalle.getPromocion() != null) {
                 facturaDetalle.setPromocion(detalle.getPromocion());
-            }*/
+            }
 
             detalles.add(facturaDetalle);
         }
 
         factura.setDetalles(detalles);
-
         return factura;
     }
 

@@ -23,10 +23,10 @@ public class ArticuloManufacturado implements Serializable{
     private String denominacion;
     @NotNull
     private String descripcion;
-    @NotNull
+
     private Double precioVenta = 0.0;
-    @NotNull
     private Double precioCosto = 0.0;
+
     @NotNull
     private Double tiempoEstimadoProduccion;
 

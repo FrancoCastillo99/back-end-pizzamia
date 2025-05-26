@@ -25,6 +25,8 @@ public class Promocion implements Serializable{
     @NotNull
     private Integer descuento;
 
+    private Double precio;
+
     @NotNull
     @OneToMany(cascade = CascadeType.ALL)
     @JoinColumn(name = "promocion_id")

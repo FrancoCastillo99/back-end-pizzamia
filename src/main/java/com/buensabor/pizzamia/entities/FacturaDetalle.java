@@ -8,14 +8,11 @@ import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-
-
-
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class FacturaDetalle implements Serializable{
+public class FacturaDetalle implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,4 +30,8 @@ public class FacturaDetalle implements Serializable{
     @ManyToOne
     @JoinColumn(name = "manufacturado_id")
     private ArticuloManufacturado articuloManufacturado;
+
+    @ManyToOne
+    @JoinColumn(name = "promocion_id")
+    private Promocion promocion;
 }

@@ -22,7 +22,6 @@ public class PedidoVentaDetalle implements Serializable{
     @NotNull
     private Integer cantidad;
 
-    @NotNull
     private Double subTotal;
 
     @ManyToOne

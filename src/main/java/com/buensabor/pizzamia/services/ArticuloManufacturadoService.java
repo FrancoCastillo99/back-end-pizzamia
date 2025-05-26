@@ -15,6 +15,9 @@ public class ArticuloManufacturadoService {
     @Autowired
     private ArticuloManufacturadoRepository articuloManufacturadoRepository;
 
+    @Autowired
+    private ArticuloInsumoService articuloInsumoService;
+
     public ArticuloManufacturado createInsumo(ArticuloManufacturado articuloManufacturado) {
         calcularPrecios(articuloManufacturado);
         return articuloManufacturadoRepository.save(articuloManufacturado);
@@ -22,6 +25,11 @@ public class ArticuloManufacturadoService {
 
     public List<ArticuloManufacturado> getAllInsumos() {
         return articuloManufacturadoRepository.findAll();
+    }
+
+    public ArticuloManufacturado findById(Long id) {
+        return articuloManufacturadoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Articulo insumo no encontrado con ID: " + id));
     }
 
     public ArticuloManufacturado updateArticuloManufacturado(Long id, ArticuloManufacturado articuloManufacturado) {
@@ -66,7 +74,8 @@ public class ArticuloManufacturadoService {
         double precioVentaPorInsumos = 0.0;
 
         for (ArticuloManufacturadoDetalle detalle : articuloManufacturado.getDetalles()) {
-            ArticuloInsumo insumo = detalle.getArticuloInsumo();
+
+            ArticuloInsumo insumo = articuloInsumoService.findById(detalle.getArticuloInsumo().getId());
             if (insumo == null) {
                 throw new RuntimeException("Todos los detalles deben tener un insumo asociado");
             }

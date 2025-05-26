@@ -26,13 +26,7 @@ public class ArticuloInsumo implements Serializable{
     @NotNull
     private  Boolean esParaElaborar;
 
-    @NotNull
     private Integer stockActual;
-
-    @NotNull
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "stockInsumo_id")
-    private RegistroInsumo stockInsumo;
 
     @NotNull
     @Enumerated(EnumType.STRING)
@@ -55,6 +49,7 @@ public class ArticuloInsumo implements Serializable{
 
     @PrePersist
     public void prePersist() {
+        this.stockActual = 0;
         this.fechaAlta = LocalDateTime.now();
         if (this.stockActual == null) this.stockActual = 0;
     }
