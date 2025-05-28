@@ -30,8 +30,9 @@ public class Domicilio implements Serializable {
     @NotNull
     private Integer codigoPostal;
 
-    @NotNull
     @ManyToOne
     @JoinColumn(name = "localidad_id", nullable = false)
     private Localidad localidad;
+
+    private boolean isActive = true;
 }

@@ -1,13 +1,18 @@
 package com.buensabor.pizzamia.controllers;
 
 
+import com.buensabor.pizzamia.entities.ArticuloInsumo;
 import com.buensabor.pizzamia.entities.ArticuloManufacturado;
+import com.buensabor.pizzamia.entities.Imagen;
 import com.buensabor.pizzamia.services.ArticuloManufacturadoService;
+import com.buensabor.pizzamia.services.ImagenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -18,15 +23,26 @@ public class ArticuloManufacturadoController {
     @Autowired
     private ArticuloManufacturadoService articuloManufacturadoService;
 
+    @Autowired
+    private ImagenService imagenService;
+
     @GetMapping
     public ResponseEntity<List<ArticuloManufacturado>> getAll() {
         List<ArticuloManufacturado> articulos = articuloManufacturadoService.getAllInsumos();
         return ResponseEntity.ok(articulos);
     }
 
-    @PostMapping
-    public ResponseEntity<?> create(@RequestBody @Valid ArticuloManufacturado articulo) {
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> create(
+            @RequestPart("manufacturado") @Valid ArticuloManufacturado articulo,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
+            // Procesar la imagen si se proporciona
+            if (file != null && !file.isEmpty()) {
+                Imagen imagen = imagenService.uploadImage(file);
+                articulo.setImagen(imagen);
+            }
+
             ArticuloManufacturado nuevo = articuloManufacturadoService.createInsumo(articulo);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (RuntimeException e) {
@@ -38,9 +54,18 @@ public class ArticuloManufacturadoController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> update(@PathVariable Long id, @RequestBody @Valid ArticuloManufacturado articulo) {
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> update(
+            @PathVariable Long id,
+            @RequestPart("manufacturado") @Valid ArticuloManufacturado articulo,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
         try {
+            // Procesar la imagen si se proporciona
+            if (file != null && !file.isEmpty()) {
+                Imagen imagen = imagenService.uploadImage(file);
+                articulo.setImagen(imagen);
+            }
+
             ArticuloManufacturado actualizado = articuloManufacturadoService.updateArticuloManufacturado(id, articulo);
             return ResponseEntity.ok(actualizado);
         } catch (RuntimeException e) {

@@ -39,7 +39,7 @@ public class Cliente implements Serializable {
     @JoinColumn(name = "user_id")
     private Usuario user;
 
-    @NotNull
+
     @ManyToMany(cascade = CascadeType.PERSIST)
     @JoinTable(name = "cliente_domicilio",
             joinColumns = @JoinColumn(name = "cliente_id"),

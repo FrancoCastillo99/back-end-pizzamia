@@ -34,8 +34,15 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody @Valid Cliente cliente) {
+    public ResponseEntity<?> create(@RequestBody @Valid ClienteDTO clienteDTO) {
         try {
+            // Convertir DTO a entidad
+            Cliente cliente = new Cliente();
+            cliente.setNombre(clienteDTO.getNombre());
+            cliente.setApellido(clienteDTO.getApellido());
+            cliente.setTelefono(clienteDTO.getTelefono());
+            cliente.setEmail(clienteDTO.getEmail());
+
             Cliente nuevo = clienteService.create(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (RuntimeException e) {
@@ -83,6 +90,53 @@ public class ClienteController {
             Cliente cliente = clienteService.addDomicilio(clienteId, domicilio);
             return ResponseEntity.status(HttpStatus.CREATED).body(cliente);
         } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{clienteId}/domicilios/{domicilioId}/toggle-estado")
+    public ResponseEntity<?> toggleEstadoDomicilio(@PathVariable Long clienteId, @PathVariable Long domicilioId) {
+        try {
+            Cliente cliente = clienteService.toggleEstadoDomicilio(clienteId, domicilioId);
+
+            // Encontrar el domicilio específico para determinar su estado actual
+            boolean estadoActual = cliente.getDomicilios().stream()
+                    .filter(d -> d.getId().equals(domicilioId))
+                    .findFirst()
+                    .map(Domicilio::isActive)
+                    .orElse(false);
+
+            String mensaje = estadoActual ?
+                    "Domicilio activado correctamente" :
+                    "Domicilio desactivado correctamente";
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", mensaje,
+                    "cliente", cliente
+            ));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{clienteId}/domicilios/{domicilioId}")
+    public ResponseEntity<?> updateDomicilio(
+            @PathVariable Long clienteId,
+            @PathVariable Long domicilioId,
+            @RequestBody @Valid Domicilio domicilio) {
+        try {
+            Cliente cliente = clienteService.updateDomicilio(clienteId, domicilioId, domicilio);
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", "Domicilio actualizado correctamente",
+                    "cliente", cliente
+            ));
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
     }

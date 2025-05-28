@@ -71,4 +71,52 @@ public class ClienteService {
         cliente.getDomicilios().add(domicilio);
         return clienteRepository.save(cliente);
     }
+
+    @Transactional
+    public Cliente toggleEstadoDomicilio(Long clienteId, Long domicilioId) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+
+        boolean domicilioEncontrado = false;
+
+        for (Domicilio domicilio : cliente.getDomicilios()) {
+            if (domicilio.getId().equals(domicilioId)) {
+                domicilio.setActive(!domicilio.isActive()); // Toggle del estado
+                domicilioEncontrado = true;
+                break;
+            }
+        }
+
+        if (!domicilioEncontrado) {
+            throw new RuntimeException("Domicilio no encontrado con ID: " + domicilioId);
+        }
+
+        return clienteRepository.save(cliente);
+    }
+
+    @Transactional
+    public Cliente updateDomicilio(Long clienteId, Long domicilioId, Domicilio domicilioActualizado) {
+        Cliente cliente = clienteRepository.findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+
+        boolean domicilioEncontrado = false;
+
+        for (Domicilio domicilio : cliente.getDomicilios()) {
+            if (domicilio.getId().equals(domicilioId)) {
+                // Actualizar los campos del domicilio existente
+                domicilio.setCalle(domicilioActualizado.getCalle());
+                domicilio.setNumero(domicilioActualizado.getNumero());
+                domicilio.setCodigoPostal(domicilioActualizado.getCodigoPostal());
+                domicilio.setLocalidad(domicilioActualizado.getLocalidad());
+                domicilioEncontrado = true;
+                break;
+            }
+        }
+
+        if (!domicilioEncontrado) {
+            throw new RuntimeException("Domicilio no encontrado con ID: " + domicilioId);
+        }
+
+        return clienteRepository.save(cliente);
+    }
 }

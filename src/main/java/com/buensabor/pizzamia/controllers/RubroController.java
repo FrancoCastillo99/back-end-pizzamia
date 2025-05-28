@@ -41,5 +41,37 @@ public class RubroController {
                     .body(Map.of("error", e.getMessage()));
         }
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateRubro(@PathVariable Long id, @RequestBody @Valid Rubro rubroActualizado) {
+        try {
+            Rubro rubro = rubroService.updateRubro(id, rubroActualizado);
+            return ResponseEntity.ok(rubro);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al actualizar el rubro", "detalle", e.getMessage()));
+        }
+    }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<?> cambiarEstado(@PathVariable Long id) {
+        try {
+            Rubro rubro = rubroService.cambiarEstadoRubro(id);
+            String mensaje = rubro.getFechaBaja() == null ? "Rubro dado de alta" : "Rubro dado de baja";
+
+            return ResponseEntity.ok(Map.of(
+                    "mensaje", mensaje,
+                    "rubro", rubro
+            ));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al cambiar estado del rubro",
+                            "detalle", e.getMessage()));
+        }
+    }
 }
 
