@@ -3,6 +3,8 @@ package com.buensabor.pizzamia.services;
 import com.buensabor.pizzamia.entities.ArticuloInsumo;
 import com.buensabor.pizzamia.repositories.ArticuloInsumoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -22,10 +24,13 @@ public class ArticuloInsumoService {
                 .orElseThrow(() -> new RuntimeException("Articulo insumo no encontrado con ID: " + id));
     }
 
-    public List<ArticuloInsumo> getAllInsumos() {
-        return articuloInsumoRepository.findAll();
+    public Page<ArticuloInsumo> getInsumosNoElaborables(Pageable pageable) {
+        return articuloInsumoRepository.findByEsParaElaborar(false, pageable);
     }
 
+    public Page<ArticuloInsumo> getAllInsumos(Pageable pageable) {
+        return articuloInsumoRepository.findAll(pageable);
+    }
     public ArticuloInsumo updateArticuloInsumo(Long id, ArticuloInsumo articuloInsumo) {
         return articuloInsumoRepository.findById(id)
                 .map(insumoExistente -> {

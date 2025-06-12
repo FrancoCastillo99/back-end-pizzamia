@@ -7,6 +7,8 @@ import com.buensabor.pizzamia.entities.Cliente;
 import com.buensabor.pizzamia.entities.Domicilio;
 import com.buensabor.pizzamia.repositories.ClienteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,8 +21,8 @@ public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
 
-    public List<Cliente> findAll() {
-        return clienteRepository.findAll();
+    public Page<Cliente> findAll(Pageable pageable) {
+        return clienteRepository.findAll(pageable);
     }
 
     public Optional<Cliente> findById(Long id) {

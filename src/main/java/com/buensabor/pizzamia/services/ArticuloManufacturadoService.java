@@ -5,6 +5,8 @@ import com.buensabor.pizzamia.entities.ArticuloManufacturado;
 import com.buensabor.pizzamia.entities.ArticuloManufacturadoDetalle;
 import com.buensabor.pizzamia.repositories.ArticuloManufacturadoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,10 +25,9 @@ public class ArticuloManufacturadoService {
         return articuloManufacturadoRepository.save(articuloManufacturado);
     }
 
-    public List<ArticuloManufacturado> getAllInsumos() {
-        return articuloManufacturadoRepository.findAll();
+    public Page<ArticuloManufacturado> getAllManufacturados(Pageable pageable) {
+        return articuloManufacturadoRepository.findAll(pageable);
     }
-
     public ArticuloManufacturado findById(Long id) {
         return articuloManufacturadoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Articulo insumo no encontrado con ID: " + id));

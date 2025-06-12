@@ -1,20 +1,21 @@
 package com.buensabor.pizzamia.controllers;
 
 
-import com.buensabor.pizzamia.entities.ArticuloInsumo;
 import com.buensabor.pizzamia.entities.ArticuloManufacturado;
 import com.buensabor.pizzamia.entities.Imagen;
 import com.buensabor.pizzamia.services.ArticuloManufacturadoService;
 import com.buensabor.pizzamia.services.ImagenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -27,8 +28,9 @@ public class ArticuloManufacturadoController {
     private ImagenService imagenService;
 
     @GetMapping
-    public ResponseEntity<List<ArticuloManufacturado>> getAll() {
-        List<ArticuloManufacturado> articulos = articuloManufacturadoService.getAllInsumos();
+    public ResponseEntity<Page<ArticuloManufacturado>> getAll(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<ArticuloManufacturado> articulos = articuloManufacturadoService.getAllManufacturados(pageable);
         return ResponseEntity.ok(articulos);
     }
 

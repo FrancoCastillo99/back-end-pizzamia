@@ -6,6 +6,9 @@ import com.buensabor.pizzamia.services.ArticuloInsumoService;
 import com.buensabor.pizzamia.services.ImagenService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +28,17 @@ public class ArticuloInsumoController {
     private ImagenService imagenService;
 
     @GetMapping
-    public ResponseEntity<List<ArticuloInsumo>> getAll() {
-        List<ArticuloInsumo> articulos = articuloInsumoService.getAllInsumos();
+    public ResponseEntity<Page<ArticuloInsumo>> getAll(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<ArticuloInsumo> articulos = articuloInsumoService.getAllInsumos(pageable);
         return ResponseEntity.ok(articulos);
+    }
+
+    @GetMapping("/no-elaborables")
+    public ResponseEntity<Page<ArticuloInsumo>> getNoElaborables(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<ArticuloInsumo> insumos = articuloInsumoService.getInsumosNoElaborables(pageable);
+        return ResponseEntity.ok(insumos);
     }
 
     @GetMapping("/{id}")
