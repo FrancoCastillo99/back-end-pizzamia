@@ -96,7 +96,7 @@ public class ClienteController {
         }
     }
 
-    @PatchMapping("/{clienteId}/domicilios/{domicilioId}/toggle-estado")
+    /*@PatchMapping("/{clienteId}/domicilios/{domicilioId}/toggle-estado")
     public ResponseEntity<?> toggleEstadoDomicilio(@PathVariable Long clienteId, @PathVariable Long domicilioId) {
         try {
             Cliente cliente = clienteService.toggleEstadoDomicilio(clienteId, domicilioId);
@@ -122,7 +122,7 @@ public class ClienteController {
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
-    }
+    }*/
 
     @PutMapping("/{clienteId}/domicilios/{domicilioId}")
     public ResponseEntity<?> updateDomicilio(

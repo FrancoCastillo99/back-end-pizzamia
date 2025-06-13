@@ -21,7 +21,13 @@ public class PedidoVentaService {
     private PromocionService promocionService;
 
     @Autowired
+    private RegistroInsumoService registroInsumoService;
+
+    @Autowired
     private ArticuloManufacturadoService articuloManufacturadoService;
+
+    @Autowired
+    private SucursalService sucursalService;
 
     public List<PedidoVenta> findAll() {
         return pedidoVentaRepository.findAll();
@@ -47,10 +53,68 @@ public class PedidoVentaService {
             // Calcular total y totalCosto del pedido
             calcularTotales(pedidoVenta);
 
-            return pedidoVentaRepository.save(pedidoVenta);
+            // Guardar el pedido
+            PedidoVenta pedidoGuardado = pedidoVentaRepository.save(pedidoVenta);
+
+            // Descontar el stock después de guardar el pedido
+            descontarStockPorPedido(pedidoGuardado);
+
+            return pedidoGuardado;
         } catch (Exception e) {
             throw new RuntimeException("Error al guardar el pedido: " + e.getMessage());
         }
+    }
+
+    private void descontarStockPorPedido(PedidoVenta pedido) {
+        for (PedidoVentaDetalle detalle : pedido.getDetalles()) {
+            // Caso 1: Artículo insumo directo
+            if (detalle.getArticuloInsumo() != null) {
+                descontarStockInsumo(detalle.getArticuloInsumo().getId(), detalle.getCantidad(), pedido.getId());
+            }
+            // Caso 2: Artículo manufacturado
+            else if (detalle.getArticuloManufacturado() != null) {
+                ArticuloManufacturado manufacturado = articuloManufacturadoService.findById(
+                        detalle.getArticuloManufacturado().getId());
+
+                for (ArticuloManufacturadoDetalle ingrediente : manufacturado.getDetalles()) {
+                    int cantidadNecesaria = detalle.getCantidad() * ingrediente.getCantidad();
+                    descontarStockInsumo(ingrediente.getArticuloInsumo().getId(), cantidadNecesaria, pedido.getId());
+                }
+            }
+            // Caso 3: Promoción
+            else if (detalle.getPromocion() != null) {
+                Promocion promocion = promocionService.findById(detalle.getPromocion().getId());
+
+                for (PromocionDetalle promoDetalle : promocion.getDetalles()) {
+                    if (promoDetalle.getArticuloManufacturado() != null) {
+                        ArticuloManufacturado manufacturado = promoDetalle.getArticuloManufacturado();
+
+                        for (ArticuloManufacturadoDetalle ingrediente : manufacturado.getDetalles()) {
+                            int cantidadNecesaria = detalle.getCantidad() * promoDetalle.getCantidad() * ingrediente.getCantidad();
+                            descontarStockInsumo(ingrediente.getArticuloInsumo().getId(), cantidadNecesaria, pedido.getId());
+                        }
+                    } else if (promoDetalle.getArticuloInsumo() != null) {
+                        int cantidadNecesaria = detalle.getCantidad() * promoDetalle.getCantidad();
+                        descontarStockInsumo(promoDetalle.getArticuloInsumo().getId(), cantidadNecesaria, pedido.getId());
+                    }
+                }
+            }
+        }
+    }
+
+    private void descontarStockInsumo(Long insumoId, Integer cantidad, Long pedidoId) {
+        ArticuloInsumo insumo = articuloInsumoService.findById(insumoId);
+
+        // Crear registro de egreso
+        RegistroInsumo registro = new RegistroInsumo();
+        registro.setTipoMovimiento(TipoMovimiento.EGRESO);
+        registro.setCantidad(cantidad);
+        registro.setArticuloInsumo(insumo);
+        registro.setMotivo("Pedido #" + pedidoId);
+        registro.setSucursal(sucursalService.findById(1L));
+
+        // Necesitas inyectar este servicio en la clase
+        registroInsumoService.registrarMovimiento(registro);
     }
 
     private void calcularSubtotales(PedidoVenta pedidoVenta) {
@@ -101,6 +165,11 @@ public class PedidoVentaService {
 
                 totalCosto += costoPromocion * detalle.getCantidad();
             }
+        }
+
+        // Agregar costo de envío si es DELIVERY
+        if (pedidoVenta.getTipoEnvio() == TipoEnvio.DELIVERY) {
+            total += 1500.0;
         }
 
         // Redondeo a dos decimales para mayor precisión

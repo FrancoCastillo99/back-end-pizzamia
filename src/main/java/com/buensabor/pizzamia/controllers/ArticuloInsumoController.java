@@ -36,8 +36,9 @@ public class ArticuloInsumoController {
 
     @GetMapping("/no-elaborables")
     public ResponseEntity<Page<ArticuloInsumo>> getNoElaborables(
+            @RequestParam("rubroId") Long rubroId,
             @PageableDefault(size = 10, sort = "id") Pageable pageable) {
-        Page<ArticuloInsumo> insumos = articuloInsumoService.getInsumosNoElaborables(pageable);
+        Page<ArticuloInsumo> insumos = articuloInsumoService.getInsumosNoElaborablesPorRubro(rubroId, pageable);
         return ResponseEntity.ok(insumos);
     }
 

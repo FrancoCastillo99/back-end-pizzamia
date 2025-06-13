@@ -34,6 +34,14 @@ public class ArticuloManufacturadoController {
         return ResponseEntity.ok(articulos);
     }
 
+    @GetMapping("/por-rubro")
+    public ResponseEntity<Page<ArticuloManufacturado>> getManufacturadosPorRubro(
+            @RequestParam("rubroId") Long rubroId,
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<ArticuloManufacturado> manufacturados = articuloManufacturadoService.getManufacturadosPorRubro(rubroId, pageable);
+        return ResponseEntity.ok(manufacturados);
+    }
+
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> create(
             @RequestPart("manufacturado") @Valid ArticuloManufacturado articulo,

@@ -25,6 +25,10 @@ public class ArticuloManufacturadoService {
         return articuloManufacturadoRepository.save(articuloManufacturado);
     }
 
+    public Page<ArticuloManufacturado> getManufacturadosPorRubro(Long rubroId, Pageable pageable) {
+        return articuloManufacturadoRepository.findByRubro_Id(rubroId, pageable);
+    }
+
     public Page<ArticuloManufacturado> getAllManufacturados(Pageable pageable) {
         return articuloManufacturadoRepository.findAll(pageable);
     }

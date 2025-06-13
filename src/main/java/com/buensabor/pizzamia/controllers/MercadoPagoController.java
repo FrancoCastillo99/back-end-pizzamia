@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/mercadopago")
+@RequestMapping("/api/mercadopago")
 public class MercadoPagoController {
 
     @Autowired

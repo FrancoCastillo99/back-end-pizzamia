@@ -8,6 +8,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ArticuloInsumoRepository extends JpaRepository<ArticuloInsumo, Long> {
-    Page<ArticuloInsumo> findByEsParaElaborar(Boolean esParaElaborar, Pageable pageable);
-
+    // Filtra por esParaElaborar y rubro.id
+    Page<ArticuloInsumo> findByEsParaElaborarAndRubro_Id(Boolean esParaElaborar, Long rubroId, Pageable pageable);
 }

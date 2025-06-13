@@ -36,17 +36,7 @@ public class MercadoPagoService {
     @Value("${mercadopago.access.token}")
     private String mercadoPagoAccessToken;
 
-    @Value("${mercadopago.notification-url}")
-    private String notificationUrl;
 
-    @Value("${mercadopago.success-url}")
-    private String successUrl;
-
-    @Value("${mercadopago.failure-url}")
-    private String failureUrl;
-
-    @Value("${mercadopago.pending-url}")
-    private String pendingUrl;
 
     @Value("${mercadopago.webhook.secret}")
     private String webhookSecret;
@@ -80,69 +70,85 @@ public class MercadoPagoService {
     }
 
     public Preference crearPreferenciaDePago(PedidoVenta pedido) throws MPException, MPApiException {
-        PreferenceClient client = new PreferenceClient();
+        try{
+            PreferenceClient client = new PreferenceClient();
 
-        List<PreferenceItemRequest> items = new ArrayList<>();
+            List<PreferenceItemRequest> items = new ArrayList<>();
 
-        for (PedidoVentaDetalle detalle : pedido.getDetalles()) {
-            String titulo;
-            String descripcion;
-            BigDecimal precio;
+            for (PedidoVentaDetalle detalle : pedido.getDetalles()) {
+                String titulo;
+                String descripcion;
+                BigDecimal precio;
 
-            if (detalle.getArticuloManufacturado() != null) {
-                titulo = detalle.getArticuloManufacturado().getDenominacion();
-                descripcion = detalle.getArticuloManufacturado().getDescripcion();
-                precio = BigDecimal.valueOf(detalle.getArticuloManufacturado().getPrecioVenta());
-            } else if (detalle.getArticuloInsumo() != null) {
-                titulo = detalle.getArticuloInsumo().getDenominacion();
-                descripcion = detalle.getArticuloInsumo().getDenominacion();
-                precio = BigDecimal.valueOf(detalle.getArticuloInsumo().getPrecioVenta());
-            } else if (detalle.getPromocion() != null) {
-                titulo = "Promoción";
-                descripcion = "Promoción especial";
-                precio = BigDecimal.valueOf(detalle.getPromocion().getPrecio());
-            } else {
-                continue;
+                if (detalle.getArticuloManufacturado() != null) {
+                    titulo = detalle.getArticuloManufacturado().getDenominacion();
+                    descripcion = detalle.getArticuloManufacturado().getDescripcion();
+                    precio = BigDecimal.valueOf(detalle.getArticuloManufacturado().getPrecioVenta());
+                } else if (detalle.getArticuloInsumo() != null) {
+                    titulo = detalle.getArticuloInsumo().getDenominacion();
+                    descripcion = detalle.getArticuloInsumo().getDenominacion();
+                    precio = BigDecimal.valueOf(detalle.getArticuloInsumo().getPrecioVenta());
+                } else if (detalle.getPromocion() != null) {
+                    titulo = "Promoción";
+                    descripcion = "Promoción especial";
+                    precio = BigDecimal.valueOf(detalle.getPromocion().getPrecio());
+                } else {
+                    continue;
+                }
+
+                PreferenceItemRequest item = PreferenceItemRequest.builder()
+                        .id(detalle.getId().toString())
+                        .title(titulo)
+                        .description(descripcion)
+                        .categoryId("food")
+                        .quantity(detalle.getCantidad())
+                        .currencyId("ARS")
+                        .unitPrice(precio)
+                        .build();
+
+                items.add(item);
             }
 
-            PreferenceItemRequest item = PreferenceItemRequest.builder()
-                    .id(detalle.getId().toString())
-                    .title(titulo)
-                    .description(descripcion)
-                    .categoryId("food")
-                    .quantity(detalle.getCantidad())
-                    .currencyId("ARS")
-                    .unitPrice(precio)
+            // Validar que haya ítems
+            if (items.isEmpty()) {
+                throw new IllegalArgumentException("No se pueden crear preferencias sin ítems");
+            }
+
+            PreferencePayerRequest payer = PreferencePayerRequest.builder()
+                    .name(pedido.getCliente().getNombre())
+                    .surname(pedido.getCliente().getApellido())
+                    .email(pedido.getCliente().getEmail())
+                    .identification(IdentificationRequest.builder()
+                            .type("EMAIL")
+                            .number(pedido.getCliente().getEmail())
+                            .build())
                     .build();
 
-            items.add(item);
+            String baseUrl = "http://localhost:5173";
+
+            PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
+                    .success(baseUrl + "/mercadopago/return?status=approved")
+                    .failure(baseUrl + "/mercadopago/return?status=rejected")
+                    .pending(baseUrl + "/mercadopago/return?status=pending")
+                    .build();
+
+            PreferenceRequest request = PreferenceRequest.builder()
+                    .items(items)
+                    .payer(payer)
+                    .backUrls(backUrls)
+                    .externalReference(pedido.getId().toString())
+                    .build();
+
+            return client.create(request);
+        }catch (MPApiException e) {
+            // Imprimir detalles del error para depuración
+            System.err.println("Error de API de MercadoPago: " + e.getApiResponse().getContent());
+            throw e;
+        } catch (Exception e) {
+            System.err.println("Error al crear preferencia: " + e.getMessage());
+            throw e;
         }
 
-        PreferencePayerRequest payer = PreferencePayerRequest.builder()
-                .name(pedido.getCliente().getNombre())
-                .surname(pedido.getCliente().getApellido())
-                .email(pedido.getCliente().getEmail())
-                .identification(IdentificationRequest.builder()
-                        .type("EMAIL")
-                        .number(pedido.getCliente().getEmail())
-                        .build())
-                .build();
-
-        PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
-                .success(successUrl)
-                .failure(failureUrl)
-                .pending(pendingUrl)
-                .build();
-
-        PreferenceRequest request = PreferenceRequest.builder()
-                .items(items)
-                .payer(payer)
-                .backUrls(backUrls)
-                .externalReference(pedido.getId().toString())
-                .notificationUrl(notificationUrl)
-                .build();
-
-        return client.create(request);
     }
 
     @Transactional

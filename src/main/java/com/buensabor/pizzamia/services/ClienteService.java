@@ -74,7 +74,7 @@ public class ClienteService {
         return clienteRepository.save(cliente);
     }
 
-    @Transactional
+    /*@Transactional
     public Cliente toggleEstadoDomicilio(Long clienteId, Long domicilioId) {
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
@@ -94,7 +94,7 @@ public class ClienteService {
         }
 
         return clienteRepository.save(cliente);
-    }
+    }*/
 
     @Transactional
     public Cliente updateDomicilio(Long clienteId, Long domicilioId, Domicilio domicilioActualizado) {

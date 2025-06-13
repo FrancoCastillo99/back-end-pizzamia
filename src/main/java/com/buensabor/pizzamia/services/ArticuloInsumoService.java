@@ -24,8 +24,8 @@ public class ArticuloInsumoService {
                 .orElseThrow(() -> new RuntimeException("Articulo insumo no encontrado con ID: " + id));
     }
 
-    public Page<ArticuloInsumo> getInsumosNoElaborables(Pageable pageable) {
-        return articuloInsumoRepository.findByEsParaElaborar(false, pageable);
+    public Page<ArticuloInsumo> getInsumosNoElaborablesPorRubro(Long rubroId, Pageable pageable) {
+        return articuloInsumoRepository.findByEsParaElaborarAndRubro_Id(false, rubroId, pageable);
     }
 
     public Page<ArticuloInsumo> getAllInsumos(Pageable pageable) {
