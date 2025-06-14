@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -107,5 +108,15 @@ public class ArticuloManufacturadoController {
                     .body(Map.of("error", "Error al cambiar estado del artículo manufacturado",
                             "detalle", e.getMessage()));
         }
+    }
+
+    @GetMapping("/{id}/disponibilidad")
+    public ResponseEntity<Map<String, Object>> verificarDisponibilidadManufacturado(@PathVariable Long id) {
+        boolean disponible = articuloManufacturadoService.verificarDisponibilidadIngredientes(id);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("disponible", disponible);
+
+        return ResponseEntity.ok(response);
     }
 }

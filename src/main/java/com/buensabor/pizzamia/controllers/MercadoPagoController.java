@@ -5,6 +5,7 @@ import com.buensabor.pizzamia.entities.PedidoVenta;
 import com.buensabor.pizzamia.repositories.PedidoVentaRepository;
 import com.buensabor.pizzamia.services.MercadoPagoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -70,4 +71,6 @@ public class MercadoPagoController {
                     .body("Error al crear la preferencia: " + e.getMessage());
         }
     }
+
+
 }

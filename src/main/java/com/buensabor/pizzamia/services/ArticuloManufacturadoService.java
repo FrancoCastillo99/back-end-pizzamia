@@ -4,6 +4,7 @@ import com.buensabor.pizzamia.entities.ArticuloInsumo;
 import com.buensabor.pizzamia.entities.ArticuloManufacturado;
 import com.buensabor.pizzamia.entities.ArticuloManufacturadoDetalle;
 import com.buensabor.pizzamia.repositories.ArticuloManufacturadoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -99,5 +100,22 @@ public class ArticuloManufacturadoService {
 
         articuloManufacturado.setPrecioCosto(precioCosto);
         articuloManufacturado.setPrecioVenta(precioVenta);
+    }
+
+    public boolean verificarDisponibilidadIngredientes(Long articuloManufacturadoId) {
+        ArticuloManufacturado articulo = findById(articuloManufacturadoId);
+
+        // Verificar cada detalle (ingrediente)
+        for (ArticuloManufacturadoDetalle detalle : articulo.getDetalles()) {
+            ArticuloInsumo insumo = detalle.getArticuloInsumo();
+            double cantidadRequerida = detalle.getCantidad();
+
+            // Si no hay suficiente stock de este ingrediente, el artículo no está disponible
+            if (insumo.getStockActual() < cantidadRequerida) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
