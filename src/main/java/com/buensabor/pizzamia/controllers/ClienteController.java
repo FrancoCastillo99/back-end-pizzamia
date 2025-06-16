@@ -45,6 +45,9 @@ public class ClienteController {
             cliente.setTelefono(clienteDTO.getTelefono());
             cliente.setEmail(clienteDTO.getEmail());
 
+            // Asignar el rol
+            cliente.setRol(clienteDTO.getRol());
+
             Cliente nuevo = clienteService.create(cliente);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
         } catch (RuntimeException e) {
@@ -96,7 +99,7 @@ public class ClienteController {
         }
     }
 
-    /*@PatchMapping("/{clienteId}/domicilios/{domicilioId}/toggle-estado")
+    @PatchMapping("/{clienteId}/domicilios/{domicilioId}/toggle-estado")
     public ResponseEntity<?> toggleEstadoDomicilio(@PathVariable Long clienteId, @PathVariable Long domicilioId) {
         try {
             Cliente cliente = clienteService.toggleEstadoDomicilio(clienteId, domicilioId);
@@ -122,7 +125,7 @@ public class ClienteController {
             }
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
         }
-    }*/
+    }
 
     @PutMapping("/{clienteId}/domicilios/{domicilioId}")
     public ResponseEntity<?> updateDomicilio(

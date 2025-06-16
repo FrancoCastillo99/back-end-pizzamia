@@ -32,6 +32,15 @@ public class PedidoVentaController {
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
     }
 
+    @GetMapping("/cliente/{clienteId}")
+    public ResponseEntity<List<PedidoVenta>> getPedidosByClienteId(@PathVariable Long clienteId) {
+        List<PedidoVenta> pedidos = pedidoVentaService.findByClienteId(clienteId);
+        if (pedidos.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(pedidos, HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<?> create(@RequestBody @Valid PedidoVenta pedidoVenta) {
         try {

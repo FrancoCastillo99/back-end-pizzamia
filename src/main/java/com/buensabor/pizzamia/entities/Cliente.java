@@ -35,6 +35,11 @@ public class Cliente implements Serializable {
     private String email;
 
     @NotNull
+    @ManyToOne
+    @JoinColumn(name = "rol_id")
+    private Rol rol;
+
+    @NotNull
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
     private Usuario user;

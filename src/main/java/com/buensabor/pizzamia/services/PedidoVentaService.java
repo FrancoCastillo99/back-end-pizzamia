@@ -41,6 +41,10 @@ public class PedidoVentaService {
         return pedidoVentaRepository.findByEstadoDenominacion(estado);
     }
 
+    public List<PedidoVenta> findByClienteId(Long clienteId) {
+        return pedidoVentaRepository.findByClienteIdOrderByIdDesc(clienteId);
+    }
+
     @Transactional
     public PedidoVenta create(PedidoVenta pedidoVenta) {
         try {
