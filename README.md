@@ -57,54 +57,53 @@ Sistema de autenticación y autorización:
    git clone https://github.com/FrancoCastillo99/back-end-pizzamia.git
    cd back-end-pizzamia
    
-Configurar application-local.properties
+2. **Configurar application-local.properties**
 
-Crea un archivo application-local.properties en src/main/resources/ con el siguiente contenido:
+   Crea un archivo `application-local.properties` en `src/main/resources/` con el siguiente contenido:
 
+   ```properties
+   # Configuración de la base de datos H2
+   spring.datasource.url=jdbc:h2:tcp://localhost/~/test
+   spring.datasource.username=sa
+   spring.datasource.password=
 
-### Configuración de la base de datos H2
-spring.datasource.url=jdbc:h2:tcp://localhost/~/test
-spring.datasource.username=sa
-spring.datasource.password=
+   # Configuración Cloudinary - Reemplaza con tus credenciales
+   cloudinary.cloud-name=tu-cloud-name
+   cloudinary.api-key=tu-api-key
+   cloudinary.api-secret=tu-api-secret
 
-### Configuración Cloudinary - Reemplaza con tus credenciales
-cloudinary.cloud-name=tu-cloud-name
-cloudinary.api-key=tu-api-key
-cloudinary.api-secret=tu-api-secret
+   # Configuración de Mercado Pago - Reemplaza con tus credenciales
+   mercadopago.access.token=tu-access-token
+   mercadopago.webhook.secret=tu-webhook-secret
 
-### Configuración de Mercado Pago - Reemplaza con tus credenciales
-mercadopago.access.token=tu-access-token
-mercadopago.webhook.secret=tu-webhook-secret
+   # Auth0 Configuration - Reemplaza con tus credenciales
+   spring.security.oauth2.resourceserver.jwt.issuer-uri=https://tu-dominio.auth0.com/
+   auth0.audience=tu-audience
+   auth0.domain=tu-dominio.auth0.com
+   auth0.clientId=tu-client-id
+   auth0.clientSecret=tu-client-secret
 
-### Auth0 Configuration - Reemplaza con tus credenciales
-spring.security.oauth2.resourceserver.jwt.issuer-uri=https://tu-dominio.auth0.com/
-auth0.audience=tu-audience
-auth0.domain=tu-dominio.auth0.com
-auth0.clientId=tu-client-id
-auth0.clientSecret=tu-client-secret
+3. **Ejecutar la aplicación**
+   ```bash
+   ./gradlew bootRun
+4. **Acceder a la aplicación**
+   - API: `http://localhost:8080`
+   - Swagger UI: `http://localhost:8080/swagger-ui.html`
+   - Consola H2: `http://localhost:8080/h2-console`
 
-##Ejecutar la aplicación
+## 📚 Documentación API
 
-./gradlew bootRun
-Acceder a la aplicación
-
-
-API: http://localhost:8080
-Swagger UI: http://localhost:8080/swagger-ui.html
-
-##Documentación API
 La documentación de la API está disponible a través de Swagger UI. Una vez que la aplicación esté en funcionamiento, puedes acceder a:
 
+- Documentación OpenAPI: `http://localhost:8080/api-docs`
+- Interfaz Swagger: `http://localhost:8080/swagger-ui.html`
 
-- Documentación OpenAPI: http://localhost:8080/api-docs
-- Interfaz Swagger: http://localhost:8080/swagger-ui.html
+## 👥 Equipo de Desarrollo
 
-👥 Equipo de Desarrollo
 Este proyecto fue desarrollado por:
 
-
-- Franco Castillo 
-- Lucas Chavez
-- Geronimo Crescitelli 
-- Matias Razinoski 
-- Nicolas Silva
+- **Franco Castillo** 
+- **Lucas Chavez** 
+- **Geronimo Crescitelli** 
+- **Matias Rezinovsky** 
+- **Nicolas Silva** 
