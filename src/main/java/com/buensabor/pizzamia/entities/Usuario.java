@@ -21,7 +21,7 @@ public class Usuario implements Serializable {
     private Long id;
 
     @NotNull
-    private String authO;
+    private String authOId;
     @NotNull
     private String username;
 }

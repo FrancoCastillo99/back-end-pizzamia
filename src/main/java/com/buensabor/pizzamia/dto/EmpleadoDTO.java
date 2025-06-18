@@ -4,7 +4,7 @@ import com.buensabor.pizzamia.entities.Rol;
 import lombok.Data;
 
 @Data
-public class ClienteDTO {
+public class EmpleadoDTO {
     private String nombre;
     private String apellido;
     private Integer telefono;

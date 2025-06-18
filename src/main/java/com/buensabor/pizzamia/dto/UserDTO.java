@@ -4,11 +4,10 @@ import com.buensabor.pizzamia.entities.Rol;
 import lombok.Data;
 
 @Data
-public class ClienteDTO {
-    private String nombre;
-    private String apellido;
-    private Integer telefono;
-    private String password;
+public class UserDTO {
+    private String auth0Id;
     private String email;
+    private String name;
+    private String nickname;
     private Rol rol;
 }

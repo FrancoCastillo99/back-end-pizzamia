@@ -17,6 +17,7 @@ import java.util.Set;
 @AllArgsConstructor
 public class Domicilio implements Serializable {
 
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

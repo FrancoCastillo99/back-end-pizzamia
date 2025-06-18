@@ -1,7 +1,10 @@
 package com.buensabor.pizzamia.controllers;
 
 
+import com.auth0.json.mgmt.Role;
+import com.buensabor.pizzamia.dto.RolDTO;
 import com.buensabor.pizzamia.entities.Rol;
+import com.buensabor.pizzamia.services.RolAuth0Service;
 import com.buensabor.pizzamia.services.RolService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -15,8 +18,13 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/roles")
 public class RolController {
+
     @Autowired
     private RolService rolService;
+
+    @Autowired
+    private RolAuth0Service rolAuth0Service;
+
 
     @GetMapping
     public ResponseEntity<List<Rol>> getAll() {
@@ -32,12 +40,30 @@ public class RolController {
     }
 
     @PostMapping
-    public ResponseEntity<Rol> create(@RequestBody Rol rol) {
+    public Rol createRole(@RequestBody RolDTO rolDTO) throws Exception {
+        Role rolAuth = null;
         try {
-            Rol savedRol = rolService.save(rol);
-            return new ResponseEntity<>(savedRol, HttpStatus.CREATED);
+            // Crear en Auth0
+            rolAuth = rolAuth0Service.createRole(rolDTO);
+
+            // Guardar en BBDD
+            Rol roles = Rol.builder()
+                    .auth0RoleId(rolAuth.getId())
+                    .descripcion(rolDTO.getDescripcion())
+                    .denominacion(rolDTO.getDenominacion())
+                    .build();
+
+            return rolService.save(roles);
         } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            // Revertir Auth0 si falla BBDD
+            if (rolAuth != null && rolAuth.getId() != null) {
+                try {
+                    rolAuth0Service.deleteRole(rolAuth.getId());
+                } catch (Exception ex) {
+                    System.err.println("Error al eliminar rol en Auth0: " + ex.getMessage());
+                }
+            }
+            throw e;
         }
     }
 

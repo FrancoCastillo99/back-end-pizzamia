@@ -38,6 +38,10 @@ dependencies {
 	implementation 'com.cloudinary:cloudinary-http44:1.36.0'
 	// Swagger UI con SpringDoc OpenAPI
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+	//sdk auth0
+	implementation("com.auth0:auth0:1.45.0")
+	//security
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 }
 
 tasks.named('test') {

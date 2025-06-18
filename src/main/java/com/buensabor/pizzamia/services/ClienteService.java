@@ -2,10 +2,9 @@ package com.buensabor.pizzamia.services;
 
 
 import com.buensabor.pizzamia.dto.ClienteDTO;
-import com.buensabor.pizzamia.entities.ArticuloInsumo;
-import com.buensabor.pizzamia.entities.Cliente;
-import com.buensabor.pizzamia.entities.Domicilio;
+import com.buensabor.pizzamia.entities.*;
 import com.buensabor.pizzamia.repositories.ClienteRepository;
+import com.buensabor.pizzamia.repositories.LocalidadRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,12 +20,27 @@ public class ClienteService {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private RolService rolService;
+
+    @Autowired
+    private LocalidadRepository localidadRepository;
+
     public Page<Cliente> findAll(Pageable pageable) {
         return clienteRepository.findAll(pageable);
     }
 
     public Optional<Cliente> findById(Long id) {
         return clienteRepository.findById(id);
+    }
+
+    @Transactional
+    public Cliente findByAuth0Id(String id) throws Exception {
+        try {
+            return clienteRepository.findByUser_AuthOId(id);
+        }catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
     }
 
     public Cliente create(Cliente cliente) {
@@ -70,6 +84,15 @@ public class ClienteService {
     public Cliente addDomicilio(Long clienteId, Domicilio domicilio) {
         Cliente cliente = clienteRepository.findById(clienteId)
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+
+        // Buscar la localidad por id y asignarla al domicilio
+        Long localidadId = domicilio.getLocalidad() != null ? domicilio.getLocalidad().getId() : null;
+        if (localidadId == null) {
+            throw new RuntimeException("El domicilio debe tener una localidad con id");
+        }
+        Localidad localidad = localidadRepository.findById(localidadId)
+                .orElseThrow(() -> new RuntimeException("Localidad no encontrada con ID: " + localidadId));
+        domicilio.setLocalidad(localidad);
 
         cliente.getDomicilios().add(domicilio);
         return clienteRepository.save(cliente);
@@ -120,6 +143,23 @@ public class ClienteService {
             throw new RuntimeException("Domicilio no encontrado con ID: " + domicilioId);
         }
 
+        return clienteRepository.save(cliente);
+    }
+
+    @Transactional
+    public Cliente cambiarRol(Long clienteId, Long nuevoRolId) {
+        // Buscar el cliente
+        Cliente cliente = findById(clienteId)
+                .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + clienteId));
+
+        // Buscar el nuevo rol
+        Rol nuevoRol = rolService.findById(nuevoRolId)
+                .orElseThrow(() -> new RuntimeException("Rol no encontrado con ID: " + nuevoRolId));
+
+        // Actualizar el rol en la base de datos
+        cliente.setRol(nuevoRol);
+
+        // Guardar y devolver el cliente actualizado
         return clienteRepository.save(cliente);
     }
 }
