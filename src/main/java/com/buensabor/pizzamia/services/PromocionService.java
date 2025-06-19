@@ -10,13 +10,18 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class PromocionService {
 
     @Autowired
     private PromocionRepository promocionRepository;
+
+    @Autowired
+    private ArticuloInsumoService articuloInsumoService;
+
+    @Autowired
+    private ArticuloManufacturadoService articuloManufacturadoService;
 
     public List<Promocion> findAll() {
         return promocionRepository.findAll();
@@ -46,6 +51,19 @@ public class PromocionService {
         // Validar porcentaje de descuento
         if (promocion.getDescuento() < 1 || promocion.getDescuento() > 100) {
             throw new RuntimeException("El descuento debe estar entre 1% y 100%");
+        }
+
+        // Cargar los objetos completos de articuloInsumo y articuloManufacturado
+        for (PromocionDetalle detalle : promocion.getDetalles()) {
+            if (detalle.getArticuloInsumo() != null && detalle.getArticuloInsumo().getId() != null) {
+                Long insumoId = detalle.getArticuloInsumo().getId();
+                detalle.setArticuloInsumo(articuloInsumoService.findById(insumoId));
+            }
+
+            if (detalle.getArticuloManufacturado() != null && detalle.getArticuloManufacturado().getId() != null) {
+                Long manufacturadoId = detalle.getArticuloManufacturado().getId();
+                detalle.setArticuloManufacturado(articuloManufacturadoService.findById(manufacturadoId));
+            }
         }
 
         // Calcular el precio de la promoción

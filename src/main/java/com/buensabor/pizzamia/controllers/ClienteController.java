@@ -114,7 +114,7 @@ public class ClienteController {
                 return ResponseEntity.internalServerError().body("El usuario no existe");
             }
 
-            usuarioAuth0Service.assignRole(userAuth0.getId(), userDTO.getRol().getDenominacion());
+            usuarioAuth0Service.assignRole(userAuth0.getId(), userDTO.getRol().getAuth0RoleId());
 
             // Verificar que el rol exista en la BD
             Optional<Rol> rolOptional = rolService.findById(userDTO.getRol().getId());
@@ -128,6 +128,7 @@ public class ClienteController {
             Cliente cliente = Cliente.builder()
                     .user(usuario)
                     .nombre(userAuth0.getName())
+                    .apellido(userDTO.getApellido())
                     .rol(rolOptional.get())
                     .email(userAuth0.getEmail())
                     .build();
