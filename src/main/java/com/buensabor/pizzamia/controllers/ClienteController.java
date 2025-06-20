@@ -2,10 +2,7 @@ package com.buensabor.pizzamia.controllers;
 
 
 import com.auth0.json.mgmt.users.User;
-import com.buensabor.pizzamia.dto.Auth0DTO;
-import com.buensabor.pizzamia.dto.CambioRolDTO;
-import com.buensabor.pizzamia.dto.ClienteDTO;
-import com.buensabor.pizzamia.dto.UserDTO;
+import com.buensabor.pizzamia.dto.*;
 import com.buensabor.pizzamia.entities.*;
 import com.buensabor.pizzamia.services.ClienteService;
 import com.buensabor.pizzamia.services.RolService;
@@ -56,6 +53,41 @@ public class ClienteController {
             return ResponseEntity.ok(cliente);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Cliente no encontrado: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody @Valid ClienteUpdateDTO clienteDTO) {
+        try {
+            usuarioAuth0Service.updateUser(clienteDTO);
+
+            Cliente cliente = clienteService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+
+            Usuario usuario = cliente.getUser();
+
+            if(clienteDTO.getEmail() != null && !clienteDTO.getEmail().equals(cliente.getEmail())) {
+                usuario.setUsername(clienteDTO.getEmail());
+            }
+
+            cliente.setNombre(clienteDTO.getNombre());
+            cliente.setApellido(clienteDTO.getApellido());
+            cliente.setTelefono(clienteDTO.getTelefono());
+            cliente.setEmail(clienteDTO.getEmail());
+            cliente.setUser(usuario);
+
+            Cliente clienteActualizado = clienteService.updateCliente(id, cliente);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(clienteActualizado);
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al actualizar el cliente: " + e.getMessage()));
         }
     }
 
@@ -158,18 +190,6 @@ public class ClienteController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody @Valid ClienteDTO clienteDTO) {
-        try {
-            Cliente clienteActualizado = clienteService.updateCliente(id, clienteDTO);
-            return ResponseEntity.ok(clienteActualizado);
-        } catch (RuntimeException e) {
-            if (e.getMessage().contains("no encontrado")) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
-            }
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
-        }
-    }
 
     // Agregar domicilio a cliente
     @PostMapping("/{clienteId}/domicilios")

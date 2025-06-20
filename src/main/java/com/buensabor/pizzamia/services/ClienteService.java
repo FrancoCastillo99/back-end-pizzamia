@@ -67,14 +67,13 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente updateCliente(Long id, ClienteDTO clienteDTO) {
+    public Cliente updateCliente(Long id, Cliente clienteUpdate) {
         return clienteRepository.findById(id)
                 .map(cliente -> {
-                    cliente.setNombre(clienteDTO.getNombre());
-                    cliente.setApellido(clienteDTO.getApellido());
-                    cliente.setTelefono(clienteDTO.getTelefono());
-                    cliente.setEmail(clienteDTO.getEmail());
-                    cliente.setRol(clienteDTO.getRol());
+                    cliente.setNombre(clienteUpdate.getNombre());
+                    cliente.setApellido(clienteUpdate.getApellido());
+                    cliente.setTelefono(clienteUpdate.getTelefono());
+                    cliente.setEmail(clienteUpdate.getEmail());
                     return clienteRepository.save(cliente);
                 })
                 .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));

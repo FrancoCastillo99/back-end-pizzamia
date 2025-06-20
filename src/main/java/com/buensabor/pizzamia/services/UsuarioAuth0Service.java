@@ -5,6 +5,7 @@ import com.auth0.client.mgmt.ManagementAPI;
 import com.auth0.json.mgmt.users.User;
 import com.auth0.json.mgmt.users.UsersPage;
 import com.buensabor.pizzamia.dto.ClienteDTO;
+import com.buensabor.pizzamia.dto.ClienteUpdateDTO;
 import com.buensabor.pizzamia.dto.EmpleadoDTO;
 import com.buensabor.pizzamia.dto.UsuarioAuth0DTO;
 
@@ -57,18 +58,17 @@ public class UsuarioAuth0Service {
     }
 
     // Modificar un usuario
-    public User updateUser(UsuarioAuth0DTO userDTO) throws Exception {
-        String userId = userDTO.getAuth0Id();
+    public User updateUser(ClienteUpdateDTO clienteDTO) throws Exception {
+        String userId = clienteDTO.getAuth0Id();
         User userUpdate = new User();
 
-        if (userDTO.getDenominacion() != null && !userDTO.getDenominacion().isEmpty()) {
-            userUpdate.setName(userDTO.getDenominacion());
+        if (clienteDTO.getNombre() != null && !clienteDTO.getNombre().isEmpty()) {
+            userUpdate.setName(clienteDTO.getNombre());
         }
-        if (userDTO.getNickname() != null && !userDTO.getNickname().isEmpty()) {
-            userUpdate.setNickname(userDTO.getNickname());
-        }
-        if (userDTO.getEmail() != null && !userDTO.getEmail().isEmpty()) {
-            userUpdate.setEmail(userDTO.getEmail());
+
+        if (clienteDTO.getEmail() != null && !clienteDTO.getEmail().isEmpty()) {
+            userUpdate.setEmail(clienteDTO.getEmail());
+            userUpdate.setEmailVerified(true);
         }
 
         return managementAPI.users().update(userId, userUpdate).execute();
