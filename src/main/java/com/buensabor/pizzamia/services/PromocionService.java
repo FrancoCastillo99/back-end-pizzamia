@@ -73,12 +73,50 @@ public class PromocionService {
     }
 
     public Promocion update(Long id, Promocion promocion) {
+        // Validaciones iniciales (las mismas que tienes)
+        if (promocion.getDetalles() == null || promocion.getDetalles().isEmpty()) {
+            throw new RuntimeException("La promoción debe tener al menos un detalle");
+        }
+
+        if (promocion.getFechaFin().isBefore(promocion.getFechaInicio())) {
+            throw new RuntimeException("La fecha de fin no puede ser anterior a la fecha de inicio");
+        }
+
+        if (promocion.getDescuento() < 1 || promocion.getDescuento() > 100) {
+            throw new RuntimeException("El descuento debe estar entre 1% y 100%");
+        }
+
         return promocionRepository.findById(id)
                 .map(existente -> {
+                    // Actualizar los datos básicos
                     existente.setFechaInicio(promocion.getFechaInicio());
                     existente.setFechaFin(promocion.getFechaFin());
                     existente.setDescuento(promocion.getDescuento());
-                    existente.setDetalles(promocion.getDetalles());
+
+                    // Eliminar los detalles existentes
+                    existente.getDetalles().clear();
+
+                    // Procesar cada detalle nuevo
+                    for (PromocionDetalle detalleNuevo : promocion.getDetalles()) {
+                        // Crear nuevo detalle o reutilizar el existente si tiene ID
+                        PromocionDetalle detalle = new PromocionDetalle();
+                        detalle.setCantidad(detalleNuevo.getCantidad());
+
+                        // Establecer solo uno de los artículos y dejar el otro como null
+                        if (detalleNuevo.getArticuloInsumo() != null && detalleNuevo.getArticuloInsumo().getId() != null) {
+                            ArticuloInsumo insumo = articuloInsumoService.findById(detalleNuevo.getArticuloInsumo().getId());
+                            detalle.setArticuloInsumo(insumo);
+                            detalle.setArticuloManufacturado(null);
+                        } else if (detalleNuevo.getArticuloManufacturado() != null && detalleNuevo.getArticuloManufacturado().getId() != null) {
+                            ArticuloManufacturado manufacturado = articuloManufacturadoService.findById(detalleNuevo.getArticuloManufacturado().getId());
+                            detalle.setArticuloManufacturado(manufacturado);
+                            detalle.setArticuloInsumo(null);
+                        } else {
+                            throw new RuntimeException("El detalle de la promoción debe tener un artículo asociado");
+                        }
+
+                        existente.getDetalles().add(detalle);
+                    }
 
                     // Recalcular el precio
                     calcularPrecio(existente);
@@ -87,8 +125,6 @@ public class PromocionService {
                 })
                 .orElseThrow(() -> new RuntimeException("Promoción no encontrada con ID: " + id));
     }
-
-
 
     private void calcularPrecio(Promocion promocion) {
         double precioTotal = 0.0;

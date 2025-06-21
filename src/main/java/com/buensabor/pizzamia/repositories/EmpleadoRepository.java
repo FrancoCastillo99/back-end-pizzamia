@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EmpleadoRepository extends JpaRepository<Empleado, Long> {
+    Empleado findByUser_AuthOId(String authOId);
 }

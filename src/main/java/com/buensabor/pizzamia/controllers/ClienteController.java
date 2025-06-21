@@ -59,26 +59,44 @@ public class ClienteController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateCliente(@PathVariable Long id, @RequestBody @Valid ClienteUpdateDTO clienteDTO) {
         try {
-            usuarioAuth0Service.updateUser(clienteDTO);
-
+            // Obtener el cliente primero para verificar su Auth0 ID
             Cliente cliente = clienteService.findById(id)
                     .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
 
             Usuario usuario = cliente.getUser();
+            String auth0Id = clienteDTO.getAuth0Id();
 
-            if(clienteDTO.getEmail() != null && !clienteDTO.getEmail().equals(cliente.getEmail())) {
-                usuario.setUsername(clienteDTO.getEmail());
+            // Verificar si es un usuario de Google
+            boolean isGoogleUser = auth0Id != null && auth0Id.startsWith("google-oauth2|");
+
+            // Solo actualizar en Auth0 si NO es un usuario de Google
+            if (!isGoogleUser) {
+                usuarioAuth0Service.updateUserFromClient(clienteDTO);
+            } else {
+                System.out.println("Usuario de Google detectado, omitiendo actualización en Auth0: " + auth0Id);
             }
 
-            cliente.setNombre(clienteDTO.getNombre());
-            cliente.setApellido(clienteDTO.getApellido());
-            cliente.setTelefono(clienteDTO.getTelefono());
-            cliente.setEmail(clienteDTO.getEmail());
-            cliente.setUser(usuario);
+            // Para usuarios de Google, solo actualizar campos permitidos en la base de datos local
+            if (isGoogleUser) {
+                // No actualizamos email para usuarios de Google
+                cliente.setTelefono(clienteDTO.getTelefono());
+                // El email se mantiene igual
+            } else {
+                // Para usuarios normales, actualizamos todos los campos
+                if (clienteDTO.getEmail() != null && !clienteDTO.getEmail().equals(cliente.getEmail())) {
+                    usuario.setUsername(clienteDTO.getEmail());
+                }
 
+                cliente.setNombre(clienteDTO.getNombre());
+                cliente.setApellido(clienteDTO.getApellido());
+                cliente.setTelefono(clienteDTO.getTelefono());
+                cliente.setEmail(clienteDTO.getEmail());
+            }
+
+            cliente.setUser(usuario);
             Cliente clienteActualizado = clienteService.updateCliente(id, cliente);
 
-            return ResponseEntity.status(HttpStatus.CREATED).body(clienteActualizado);
+            return ResponseEntity.status(HttpStatus.OK).body(clienteActualizado);
 
         } catch (RuntimeException e) {
             if (e.getMessage().contains("no encontrado")) {

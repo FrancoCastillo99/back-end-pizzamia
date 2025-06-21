@@ -2,8 +2,11 @@ package com.buensabor.pizzamia.controllers;
 
 
 import com.auth0.json.mgmt.users.User;
+import com.buensabor.pizzamia.dto.Auth0DTO;
 import com.buensabor.pizzamia.dto.CambioRolDTO;
 import com.buensabor.pizzamia.dto.EmpleadoDTO;
+import com.buensabor.pizzamia.dto.EmpleadoUpdateDTO;
+import com.buensabor.pizzamia.entities.Cliente;
 import com.buensabor.pizzamia.entities.Empleado;
 import com.buensabor.pizzamia.entities.Rol;
 import com.buensabor.pizzamia.entities.Usuario;
@@ -12,6 +15,9 @@ import com.buensabor.pizzamia.services.RolService;
 import com.buensabor.pizzamia.services.UsuarioAuth0Service;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,8 +39,8 @@ public class EmpleadoController {
     private UsuarioAuth0Service usuarioAuth0Service;
 
     @GetMapping
-    public ResponseEntity<List<Empleado>> getAll() {
-        return ResponseEntity.ok(empleadoService.findAll());
+    public ResponseEntity<Page<Empleado>> getAll(@PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        return ResponseEntity.ok(empleadoService.findAll(pageable));
     }
 
     @GetMapping("/{id}")
@@ -42,6 +48,19 @@ public class EmpleadoController {
         return empleadoService.findById(id)
                 .map(rubro -> new ResponseEntity<>(rubro, HttpStatus.OK))
                 .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @PostMapping("/getUserById")
+    public ResponseEntity<?> getUserByAuthId(@RequestBody Auth0DTO auth0DTO) {
+        try {
+            Empleado empleado = empleadoService.findByAuth0Id(auth0DTO.getAuth0Id());
+            if(empleado == null) {
+                return ResponseEntity.ok(false);
+            }
+            return ResponseEntity.ok(empleado);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Empleado no encontrado: " + e.getMessage());
+        }
     }
 
     @PostMapping
@@ -88,6 +107,64 @@ public class EmpleadoController {
             // Si algo falla, intentamos limpiar el usuario de Auth0
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("error", "Error al crear empleado: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEmpleado(@PathVariable Long id, @RequestBody @Valid EmpleadoUpdateDTO empleadoUpdateDTO) {
+        try {
+            // Obtener el empleado actual
+            Empleado empleado = empleadoService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
+
+            Usuario usuario = empleado.getUser();
+            String auth0Id = empleadoUpdateDTO.getAuth0Id();
+
+            // Verificar si es un usuario de Google
+            boolean isGoogleUser = auth0Id != null && auth0Id.startsWith("google-oauth2|");
+
+            // Solo actualizar en Auth0 si NO es un usuario de Google
+            if (!isGoogleUser) {
+                usuarioAuth0Service.updateUserFromEmpleado(empleadoUpdateDTO, empleado); // Pasamos el empleado actual
+            } else {
+                System.out.println("Usuario de Google detectado, omitiendo actualización en Auth0: " + auth0Id);
+            }
+
+            // Actualizar el rol en la base de datos local si se proporcionó un nuevo rol
+            if (empleadoUpdateDTO.getRol() != null && empleadoUpdateDTO.getRol().getId() != null) {
+                empleado.setRol(empleadoUpdateDTO.getRol());
+            }
+
+            // Para usuarios de Google, solo actualizar campos permitidos en la base de datos local
+            if (isGoogleUser) {
+                // No actualizamos email para usuarios de Google
+                empleado.setTelefono(empleadoUpdateDTO.getTelefono());
+                // El email se mantiene igual
+            } else {
+                // Para usuarios normales, actualizamos todos los campos
+                if (empleadoUpdateDTO.getEmail() != null && !empleadoUpdateDTO.getEmail().equals(empleado.getEmail())) {
+                    usuario.setUsername(empleadoUpdateDTO.getEmail());
+                }
+
+                empleado.setNombre(empleadoUpdateDTO.getNombre());
+                empleado.setApellido(empleadoUpdateDTO.getApellido());
+                empleado.setTelefono(empleadoUpdateDTO.getTelefono());
+                empleado.setEmail(empleadoUpdateDTO.getEmail());
+            }
+
+            empleado.setUser(usuario);
+            Empleado empleadoActualizado = empleadoService.updateEmpleado(id, empleado);
+
+            return ResponseEntity.status(HttpStatus.OK).body(empleadoActualizado);
+
+        } catch (RuntimeException e) {
+            if (e.getMessage().contains("no encontrado")) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+            }
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Error al actualizar el empleado: " + e.getMessage()));
         }
     }
 
