@@ -1,9 +1,13 @@
 package com.buensabor.pizzamia.controllers;
 
+
 import com.buensabor.pizzamia.entities.PedidoVenta;
 import com.buensabor.pizzamia.services.PedidoVentaService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,11 +22,10 @@ public class PedidoVentaController {
     private PedidoVentaService pedidoVentaService;
 
     @GetMapping
-    public ResponseEntity<List<PedidoVenta>> getAll(@RequestParam(required = false) String estado) {
-        if (estado != null) {
-            return ResponseEntity.ok(pedidoVentaService.findByEstado(estado));
-        }
-        return ResponseEntity.ok(pedidoVentaService.findAll());
+    public ResponseEntity<Page<PedidoVenta>> getAll(
+            @PageableDefault(size = 10, sort = "id") Pageable pageable) {
+        Page<PedidoVenta> pedidos = pedidoVentaService.getAllManufacturados(pageable);
+        return ResponseEntity.ok(pedidos);
     }
 
     @GetMapping("/{id}")

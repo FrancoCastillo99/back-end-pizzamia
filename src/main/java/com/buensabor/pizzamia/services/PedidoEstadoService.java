@@ -28,18 +28,6 @@ public class PedidoEstadoService {
     @Autowired
     private FacturaService facturaService;
 
-    @Autowired
-    private ArticuloInsumoService articuloInsumoService;
-
-    @Autowired
-    private ArticuloManufacturadoService articuloManufacturadoService;
-
-    @Autowired
-    private PromocionService promocionService;
-
-    @Autowired
-    private RegistroInsumoService registroInsumoService;
-
     @Transactional
     public PedidoVenta cambiarEstado(Long pedidoId, Long nuevoEstadoId, Long empleadoId) {
         // Buscar el pedido
@@ -74,10 +62,6 @@ public class PedidoEstadoService {
         // Guardar el pedido con su nuevo estado
         PedidoVenta pedidoActualizado = pedidoVentaRepository.save(pedido);
 
-        // Si cambia a "EN PREPARACION", descontar stock
-        if ("EN PREPARACION".equals(nuevoEstado.getDenominacion())) {
-            descontarStockPorPedido(pedidoActualizado);
-        }
 
         // Si el nuevo estado es FACTURADO, generar y guardar la factura
         if ("FACTURADO".equals(nuevoEstadoNombre)) {
@@ -110,59 +94,6 @@ public class PedidoEstadoService {
             default:
                 throw new IllegalStateException("Rol no autorizado para cambiar estados");
         }
-    }
-
-    @Transactional
-    public void descontarStockPorPedido(PedidoVenta pedido) {
-        for (PedidoVentaDetalle detalle : pedido.getDetalles()) {
-            // Caso 1: Artículo insumo directo
-            if (detalle.getArticuloInsumo() != null) {
-                descontarStockInsumo(detalle.getArticuloInsumo().getId(), detalle.getCantidad());
-            }
-            // Caso 2: Artículo manufacturado
-            else if (detalle.getArticuloManufacturado() != null) {
-                ArticuloManufacturado manufacturado = articuloManufacturadoService.findById(
-                        detalle.getArticuloManufacturado().getId());
-
-                for (ArticuloManufacturadoDetalle ingrediente : manufacturado.getDetalles()) {
-                    int cantidadNecesaria = detalle.getCantidad() * ingrediente.getCantidad();
-                    descontarStockInsumo(ingrediente.getArticuloInsumo().getId(), cantidadNecesaria);
-                }
-            }
-            // Caso 3: Promoción
-            else if (detalle.getPromocion() != null) {
-                Promocion promocion = promocionService.findById(detalle.getPromocion().getId());
-
-                for (PromocionDetalle promoDetalle : promocion.getDetalles()) {
-                    if (promoDetalle.getArticuloManufacturado() != null) {
-                        ArticuloManufacturado manufacturado = promoDetalle.getArticuloManufacturado();
-
-                        for (ArticuloManufacturadoDetalle ingrediente : manufacturado.getDetalles()) {
-                            int cantidadNecesaria = detalle.getCantidad() * promoDetalle.getCantidad() * ingrediente.getCantidad();
-                            descontarStockInsumo(ingrediente.getArticuloInsumo().getId(), cantidadNecesaria);
-                        }
-                    } else if (promoDetalle.getArticuloInsumo() != null) {
-                        int cantidadNecesaria = detalle.getCantidad() * promoDetalle.getCantidad();
-                        descontarStockInsumo(promoDetalle.getArticuloInsumo().getId(), cantidadNecesaria);
-                    }
-                }
-            }
-        }
-    }
-
-    @Transactional
-    public void descontarStockInsumo(Long insumoId, Integer cantidad) {
-        ArticuloInsumo insumo = articuloInsumoService.findById(insumoId);
-
-        // Crear registro de egreso
-        RegistroInsumo registro = new RegistroInsumo();
-        registro.setTipoMovimiento(TipoMovimiento.EGRESO);
-        registro.setCantidad(cantidad);
-        registro.setArticuloInsumo(insumo);
-        registro.setMotivo("Pedido en preparación");
-
-        // Usar el servicio que ya maneja la lógica de stock
-        registroInsumoService.registrarMovimiento(registro);
     }
 }
 

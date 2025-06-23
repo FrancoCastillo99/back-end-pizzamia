@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class FacturaService {
@@ -70,6 +71,10 @@ public class FacturaService {
 
     public Factura guardarFactura(Factura factura) {
         return facturaRepository.save(factura);
+    }
+
+    public Optional<Factura> findById(Long id) {
+        return facturaRepository.findById(id);
     }
 }
 

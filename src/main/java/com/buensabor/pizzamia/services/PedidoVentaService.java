@@ -3,6 +3,8 @@ package com.buensabor.pizzamia.services;
 import com.buensabor.pizzamia.entities.*;
 import com.buensabor.pizzamia.repositories.PedidoVentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +31,9 @@ public class PedidoVentaService {
     @Autowired
     private SucursalService sucursalService;
 
-    public List<PedidoVenta> findAll() {
-        return pedidoVentaRepository.findAll();
+
+    public Page<PedidoVenta> getAllManufacturados(Pageable pageable) {
+        return pedidoVentaRepository.findAll(pageable);
     }
 
     public Optional<PedidoVenta> findById(Long id) {

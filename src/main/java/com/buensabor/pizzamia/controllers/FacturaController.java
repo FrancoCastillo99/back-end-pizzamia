@@ -4,13 +4,14 @@ import com.buensabor.pizzamia.entities.Factura;
 import com.buensabor.pizzamia.entities.PedidoVenta;
 import com.buensabor.pizzamia.repositories.PedidoVentaRepository;
 import com.buensabor.pizzamia.services.FacturaService;
+import com.buensabor.pizzamia.services.PdfService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import com.itextpdf.text.DocumentException;
 
 import java.util.Map;
 import java.util.Optional;
@@ -22,6 +23,9 @@ public class FacturaController {
     private  PedidoVentaRepository pedidoVentaRepository;
     @Autowired
     private  FacturaService facturaService;
+    @Autowired
+    private PdfService pdfService;
+
 
 
 
@@ -47,6 +51,34 @@ public class FacturaController {
 
         // Devolvemos la respuesta con la factura guardada
         return ResponseEntity.status(HttpStatus.CREATED).body(facturaGuardada);
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> generarFacturaPdf(@PathVariable Long id) {
+        try {
+            // Buscar la factura por ID
+            Optional<Factura> facturaOpt = facturaService.findById(id);
+
+            if (!facturaOpt.isPresent()) {
+                return ResponseEntity.notFound().build();
+            }
+
+            // Generar el PDF
+            byte[] pdfBytes = pdfService.generarFacturaPdf(facturaOpt.get());
+
+            // Configurar las cabeceras de la respuesta
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("filename", "factura-" + id + ".pdf");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 }
 
