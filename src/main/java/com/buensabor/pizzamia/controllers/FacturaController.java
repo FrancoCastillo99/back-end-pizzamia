@@ -53,11 +53,11 @@ public class FacturaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(facturaGuardada);
     }
 
-    @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]> generarFacturaPdf(@PathVariable Long id) {
+    @GetMapping("/pedido/{pedidoId}/pdf")
+    public ResponseEntity<byte[]> generarFacturaPdfPorPedido(@PathVariable Long pedidoId) {
         try {
-            // Buscar la factura por ID
-            Optional<Factura> facturaOpt = facturaService.findById(id);
+            // Buscar la factura por ID de pedido
+            Optional<Factura> facturaOpt = facturaService.findByPedidoVentaId(pedidoId);
 
             if (!facturaOpt.isPresent()) {
                 return ResponseEntity.notFound().build();
@@ -69,7 +69,7 @@ public class FacturaController {
             // Configurar las cabeceras de la respuesta
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("filename", "factura-" + id + ".pdf");
+            headers.setContentDispositionFormData("filename", "factura-pedido-" + pedidoId + ".pdf");
 
             return ResponseEntity
                     .ok()

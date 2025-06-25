@@ -22,7 +22,13 @@ public class FacturaService {
     public Factura generarFacturaDesdePedido(PedidoVenta pedidoVenta) {
         double subTotal = pedidoVenta.getTotal();
         double costoEnvio = pedidoVenta.getTipoEnvio() == TipoEnvio.DELIVERY ? 1500.0 : 0.0;
+
+        if(costoEnvio == 1500){
+            subTotal = subTotal - costoEnvio;
+        }
+
         double total = subTotal + costoEnvio;
+
 
         Factura factura = new Factura();
         factura.setFechaFacturacion(LocalDate.now());
@@ -75,6 +81,10 @@ public class FacturaService {
 
     public Optional<Factura> findById(Long id) {
         return facturaRepository.findById(id);
+    }
+
+    public Optional<Factura> findByPedidoVentaId(Long pedidoVentaId) {
+        return facturaRepository.findByPedidoVentaId(pedidoVentaId);
     }
 }
 
