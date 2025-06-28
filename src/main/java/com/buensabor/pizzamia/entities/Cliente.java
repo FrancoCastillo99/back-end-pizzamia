@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 
@@ -46,11 +47,10 @@ public class Cliente implements Serializable {
     private Usuario user;
 
 
-    @ManyToMany(cascade = CascadeType.PERSIST)
-    @JoinTable(name = "cliente_domicilio",
-            joinColumns = @JoinColumn(name = "cliente_id"),
-            inverseJoinColumns = @JoinColumn(name = "domicilio_id"))
-    private Set<Domicilio> domicilios = new HashSet<>();
+    @NotNull
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "cliente_id")
+    private List<Domicilio> domicilios;
 
     @NotNull
     private LocalDateTime fechaAlta;

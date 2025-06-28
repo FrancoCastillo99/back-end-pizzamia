@@ -11,8 +11,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Sort;
 
-import java.util.List;
+
 import java.util.Map;
 
 @RestController
@@ -36,12 +37,15 @@ public class PedidoVentaController {
     }
 
     @GetMapping("/cliente/{clienteId}")
-    public ResponseEntity<List<PedidoVenta>> getPedidosByClienteId(@PathVariable Long clienteId) {
-        List<PedidoVenta> pedidos = pedidoVentaService.findByClienteId(clienteId);
-        if (pedidos.isEmpty()) {
+    public ResponseEntity<Page<PedidoVenta>> getPedidosByClienteId(
+            @PathVariable Long clienteId,
+            @PageableDefault(size = 10, sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<PedidoVenta> pedidosPage = pedidoVentaService.findByClienteId(clienteId, pageable);
+        if (pedidosPage.isEmpty()) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        return new ResponseEntity<>(pedidos, HttpStatus.OK);
+        return new ResponseEntity<>(pedidosPage, HttpStatus.OK);
     }
 
     @PostMapping

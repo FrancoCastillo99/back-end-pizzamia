@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,7 +19,7 @@ public interface PedidoVentaRepository extends JpaRepository<PedidoVenta,Long>{
     List<PedidoVenta> findByEstadoDenominacion(String estado);
 
     // Devuelve una lista de pedidos de venta ordenados por ID descendente para un cliente específico
-    List<PedidoVenta> findByClienteIdOrderByIdDesc(Long clienteId);
+    Page<PedidoVenta> findByClienteIdOrderByIdDesc(Long clienteId, Pageable pageable);
 
     // Consulta para obtener el top N de clientes con más pedidos
     @Query("SELECT new com.buensabor.pizzamia.dto.ClientePedidosDTO(" +

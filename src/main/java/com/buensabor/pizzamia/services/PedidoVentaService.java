@@ -44,8 +44,8 @@ public class PedidoVentaService {
         return pedidoVentaRepository.findByEstadoDenominacion(estado);
     }
 
-    public List<PedidoVenta> findByClienteId(Long clienteId) {
-        return pedidoVentaRepository.findByClienteIdOrderByIdDesc(clienteId);
+    public Page<PedidoVenta> findByClienteId(Long clienteId, Pageable pageable) {
+        return pedidoVentaRepository.findByClienteIdOrderByIdDesc(clienteId, pageable);
     }
 
     @Transactional
@@ -133,9 +133,12 @@ public class PedidoVentaService {
             } else if (detalle.getArticuloInsumo() != null) {
                 ArticuloInsumo insumo = articuloInsumoService.findById(detalle.getArticuloInsumo().getId());
                 detalle.setSubTotal(insumo.getPrecioVenta() * detalle.getCantidad());
-            } else if (detalle.getPromocion() != null) {
+            } // En calcularSubtotales
+            else if (detalle.getPromocion() != null) {
                 Promocion promocion = promocionService.findById(detalle.getPromocion().getId());
+                detalle.setPromocion(promocion); // Actualizar la referencia
                 detalle.setSubTotal(promocion.getPrecio() * detalle.getCantidad());
+
             } else {
                 throw new RuntimeException("El detalle debe tener un artículo o promoción asociado");
             }
@@ -219,7 +222,9 @@ public class PedidoVentaService {
             }
             // Caso 3: Validar stock para promociones
             else if (detalle.getPromocion() != null) {
+                // Cargar la promoción completa desde la base de datos
                 Promocion promocion = promocionService.findById(detalle.getPromocion().getId());
+                detalle.setPromocion(promocion); // Actualizar con la promoción completa
 
                 // Validar cada componente de la promoción
                 for (PromocionDetalle promoDetalle : promocion.getDetalles()) {

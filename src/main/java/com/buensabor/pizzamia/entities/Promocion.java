@@ -19,11 +19,19 @@ public class Promocion implements Serializable{
     private Long id;
 
     @NotNull
+    private String denominacion;
+
+    @NotNull
     private LocalDate fechaInicio;
     @NotNull
     private LocalDate fechaFin;
     @NotNull
     private Integer descuento;
+
+    @NotNull
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "imagen_id")
+    private Imagen imagen;
 
     private Double precio;
 

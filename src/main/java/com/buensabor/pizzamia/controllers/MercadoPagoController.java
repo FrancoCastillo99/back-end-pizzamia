@@ -2,6 +2,7 @@ package com.buensabor.pizzamia.controllers;
 
 import com.buensabor.pizzamia.entities.MercadoPagoDatos;
 import com.buensabor.pizzamia.entities.PedidoVenta;
+import com.buensabor.pizzamia.repositories.MercadoPagoDatosRepository;
 import com.buensabor.pizzamia.repositories.PedidoVentaRepository;
 import com.buensabor.pizzamia.services.MercadoPagoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,34 +27,8 @@ public class MercadoPagoController {
     private PedidoVentaRepository pedidoVentaRepository;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private MercadoPagoDatosRepository mercadoPagoDatosRepository;
 
-    @PostMapping("/webhook")
-    public ResponseEntity<String> handleWebhook(
-            @RequestBody String payloadString,
-            @RequestHeader(value = "X-Hub-Signature", required = false) String signature) {
-        try {
-            // Validar firma si está presente
-            if (signature != null && !mercadoPagoService.validarFirmaWebhook(payloadString, signature)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Firma no válida");
-            }
-
-            // Convertir el payload a Map
-            Map<String, Object> payload = objectMapper.readValue(payloadString, Map.class);
-
-            // Procesar la notificación
-            MercadoPagoDatos datos = mercadoPagoService.procesarWebhook(payload);
-
-            if (datos != null) {
-                return ResponseEntity.ok("Pago procesado correctamente");
-            }
-            return ResponseEntity.ok("Notificación recibida");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al procesar webhook: " + e.getMessage());
-        }
-    }
 
     @PostMapping("/crear-preferencia/{pedidoId}")
     public ResponseEntity<?> crearPreferencia(@PathVariable Long pedidoId) {
@@ -69,6 +44,31 @@ public class MercadoPagoController {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al crear la preferencia: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/datos")
+    public ResponseEntity<?> crearMercadoPagoDatos(@RequestBody MercadoPagoDatos mercadoPagoDatos) {
+        try {
+            // Validación básica de campos requeridos
+            if (mercadoPagoDatos.getDateCreated() == null ||
+                    mercadoPagoDatos.getDateApproved() == null ||
+                    mercadoPagoDatos.getPayment_type_id() == null ||
+                    mercadoPagoDatos.getPayment_method_id() == null ||
+                    mercadoPagoDatos.getStatus() == null ||
+                    mercadoPagoDatos.getStatus_detail() == null ||
+                    mercadoPagoDatos.getExternalReference() == null) {
+
+                return ResponseEntity.badRequest().body("Todos los campos son obligatorios, incluyendo externalReference");
+            }
+
+            // Guardar en la base de datos
+            MercadoPagoDatos savedData = mercadoPagoDatosRepository.save(mercadoPagoDatos);
+
+            return ResponseEntity.status(HttpStatus.CREATED).body(savedData);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al crear los datos de MercadoPago: " + e.getMessage());
         }
     }
 

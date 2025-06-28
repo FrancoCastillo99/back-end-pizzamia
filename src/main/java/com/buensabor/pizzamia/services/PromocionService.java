@@ -73,7 +73,7 @@ public class PromocionService {
     }
 
     public Promocion update(Long id, Promocion promocion) {
-        // Validaciones iniciales (las mismas que tienes)
+        // Validaciones iniciales
         if (promocion.getDetalles() == null || promocion.getDetalles().isEmpty()) {
             throw new RuntimeException("La promoción debe tener al menos un detalle");
         }
@@ -86,12 +86,22 @@ public class PromocionService {
             throw new RuntimeException("El descuento debe estar entre 1% y 100%");
         }
 
+        if (promocion.getDenominacion() == null || promocion.getDenominacion().trim().isEmpty()) {
+            throw new RuntimeException("La denominación de la promoción es obligatoria");
+        }
+
         return promocionRepository.findById(id)
                 .map(existente -> {
                     // Actualizar los datos básicos
+                    existente.setDenominacion(promocion.getDenominacion());
                     existente.setFechaInicio(promocion.getFechaInicio());
                     existente.setFechaFin(promocion.getFechaFin());
                     existente.setDescuento(promocion.getDescuento());
+
+                    // Actualizar imagen solo si se proporciona una nueva
+                    if (promocion.getImagen() != null) {
+                        existente.setImagen(promocion.getImagen());
+                    }
 
                     // Eliminar los detalles existentes
                     existente.getDetalles().clear();
@@ -125,7 +135,6 @@ public class PromocionService {
                 })
                 .orElseThrow(() -> new RuntimeException("Promoción no encontrada con ID: " + id));
     }
-
     private void calcularPrecio(Promocion promocion) {
         double precioTotal = 0.0;
 

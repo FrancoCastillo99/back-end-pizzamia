@@ -52,22 +52,7 @@ public class MercadoPagoService {
         MercadoPagoConfig.setAccessToken(mercadoPagoAccessToken);
     }
 
-    /**
-     * Valida que la solicitud del webhook venga realmente de MercadoPago
-     */
-    public boolean validarFirmaWebhook(String payload, String receivedSignature) {
-        try {
-            SecretKeySpec secretKey = new SecretKeySpec(webhookSecret.getBytes(), "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
-            mac.init(secretKey);
-            byte[] hmacBytes = mac.doFinal(payload.getBytes());
-            String calculatedSignature = Base64.getEncoder().encodeToString(hmacBytes);
-            return calculatedSignature.equals(receivedSignature);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+
 
     public Preference crearPreferenciaDePago(PedidoVenta pedido) throws MPException, MPApiException {
         try{
@@ -124,7 +109,7 @@ public class MercadoPagoService {
                             .build())
                     .build();
 
-            String baseUrl = "http://localhost:5173";
+            String baseUrl = "https://localhost:5173";
 
             PreferenceBackUrlsRequest backUrls = PreferenceBackUrlsRequest.builder()
                     .success(baseUrl + "/mercadopago/return?status=approved")
@@ -151,52 +136,10 @@ public class MercadoPagoService {
 
     }
 
-    @Transactional
-    public MercadoPagoDatos procesarNotificacion(String paymentId) throws MPException, MPApiException {
-        PaymentClient paymentClient = new PaymentClient();
-        Payment payment = paymentClient.get(Long.parseLong(paymentId));
-
-        MercadoPagoDatos mpDatos = new MercadoPagoDatos();
-        mpDatos.setDateCreated(LocalDateTime.ofInstant(payment.getDateCreated().toInstant(), ZoneOffset.UTC));
-
-        if (payment.getDateApproved() != null) {
-            mpDatos.setDateApproved(LocalDateTime.ofInstant(payment.getDateApproved().toInstant(), ZoneOffset.UTC));
-        }
-
-        mpDatos.setPayment_type_id(payment.getPaymentTypeId());
-        mpDatos.setPayment_method_id(payment.getPaymentMethodId());
-        mpDatos.setStatus(payment.getStatus());
-        mpDatos.setStatus_detail(payment.getStatusDetail());
-        mpDatos.setExternalReference(payment.getExternalReference());
-
-        String externalReference = payment.getExternalReference();
-        if (externalReference != null) {
-            Long pedidoId = Long.parseLong(externalReference);
-            pedidoVentaRepository.findById(pedidoId).ifPresent(pedido -> {
-                // Actualizar estado del pedido si es necesario
-            });
-        }
-
-        return mercadoPagoDatosRepository.save(mpDatos);
-    }
-
-    /**
-     * Procesa la notificación del webhook de MercadoPago
-     */
-    public MercadoPagoDatos procesarWebhook(Map<String, Object> payload) throws Exception {
-        String type = (String) payload.get("type");
-
-        if ("payment".equals(type)) {
-            Map<String, Object> data = (Map<String, Object>) payload.get("data");
-            String paymentId = data.get("id").toString();
-            return procesarNotificacion(paymentId);
-        }
-
-        return null;
-    }
-
     public boolean verificarPagoAprobado(Long pedidoId) {
         Optional<MercadoPagoDatos> datosPago = mercadoPagoDatosRepository.findByExternalReference(pedidoId.toString());
         return datosPago.isPresent() && "approved".equals(datosPago.get().getStatus());
     }
+
+
 }

@@ -151,7 +151,7 @@ public class PdfService {
 
         // Si es Mercado Pago, agregar información de la transacción
         if (factura.getMpDatos() != null) {
-            document.add(new Paragraph("ID de transacción Mercado Pago: " + factura.getMpDatos().getPayment_type_id(), fontNormal));
+            document.add(new Paragraph("ID de transacción Mercado Pago: " + factura.getMpDatos().getPayment_method_id(), fontNormal));
         }
 
         // Agregar información del pedido

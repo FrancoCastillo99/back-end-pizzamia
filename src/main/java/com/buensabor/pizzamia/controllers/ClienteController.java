@@ -180,6 +180,7 @@ public class ClienteController {
                     .nombre(userAuth0.getName())
                     .apellido(userDTO.getApellido())
                     .rol(rolOptional.get())
+                    .telefono(userDTO.getTelefono())
                     .email(userAuth0.getEmail())
                     .build();
 

@@ -81,14 +81,20 @@ public class PedidoEstadoService {
         switch (rol.toUpperCase()) {
             case "CAJERO":
                 if (!(estadoActual.equals("EN ESPERA") && nuevoEstado.equals("EN COCINA") ||
-                        estadoActual.equals("LISTO") && nuevoEstado.equals("FACTURADO"))) {
-                    throw new IllegalStateException("El cajero solo puede cambiar de 'EN ESPERA' a 'EN COCINA' o de 'LISTO' a 'FACTURADO'");
+                        estadoActual.equals("LISTO") && (nuevoEstado.equals("FACTURADO") || nuevoEstado.equals("EN DELIVERY")) ||
+                        estadoActual.equals("ENTREGADO") && nuevoEstado.equals("FACTURADO"))) {
+                    throw new IllegalStateException("El cajero solo puede cambiar de 'EN ESPERA' a 'EN COCINA', de 'LISTO' a 'FACTURADO' o 'EN DELIVERY', o de 'ENTREGADO' a 'FACTURADO'");
                 }
                 break;
             case "COCINERO":
                 if (!(estadoActual.equals("EN COCINA") && nuevoEstado.equals("EN PREPARACION") ||
                         estadoActual.equals("EN PREPARACION") && nuevoEstado.equals("LISTO"))) {
                     throw new IllegalStateException("El cocinero solo puede cambiar de 'EN COCINA' a 'EN PREPARACION' o de 'EN PREPARACION' a 'LISTO'");
+                }
+                break;
+            case "DELIVERY":
+                if (!(estadoActual.equals("EN DELIVERY") && nuevoEstado.equals("ENTREGADO"))) {
+                    throw new IllegalStateException("El delivery solo puede cambiar de 'EN DELIVERY' a 'ENTREGADO'");
                 }
                 break;
             default:
