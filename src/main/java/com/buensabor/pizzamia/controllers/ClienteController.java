@@ -193,12 +193,28 @@ public class ClienteController {
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id) {
         try {
-            Cliente cliente = clienteService.cambiarEstadoCliente(id);
-            String mensaje = cliente.getFechaBaja() == null ? "Cliente dado de alta" : "Cliente dado de baja";
+            // 1. Recuperar el cliente con su ID
+            Cliente cliente = clienteService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Cliente no encontrado con ID: " + id));
+
+            // 2. Obtener el auth0Id del cliente
+            String auth0Id = cliente.getUser().getAuthOId();
+
+            // 3. Cambiar estado en la base de datos local
+            Cliente clienteActualizado = clienteService.cambiarEstadoCliente(id);
+
+            // 4. Cambiar estado en Auth0 (bloquear si se da de baja, desbloquear si se da de alta)
+            User auth0User = usuarioAuth0Service.toggleUserBlockStatus(auth0Id);
+
+            // 5. Determinar el mensaje según el nuevo estado
+            String mensaje = clienteActualizado.getFechaBaja() == null ?
+                    "Cliente dado de alta y desbloqueado en Auth0" :
+                    "Cliente dado de baja y bloqueado en Auth0";
 
             return ResponseEntity.ok(Map.of(
                     "mensaje", mensaje,
-                    "cliente", cliente
+                    "cliente", clienteActualizado,
+                    "auth0Status", auth0User.isBlocked() ? "bloqueado" : "desbloqueado"
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));

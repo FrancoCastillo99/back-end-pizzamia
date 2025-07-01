@@ -172,12 +172,28 @@ public class EmpleadoController {
     @PatchMapping("/{id}/estado")
     public ResponseEntity<?> cambiarEstado(@PathVariable Long id) {
         try {
-            Empleado empleado = empleadoService.cambiarEstadoEmpleado(id);
-            String mensaje = empleado.getFechaBaja() == null ? "Empleado dado de alta" : "Empleado dado de baja";
+            // 1. Recuperar el empleado con su ID
+            Empleado empleado = empleadoService.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Empleado no encontrado con ID: " + id));
+
+            // 2. Obtener el auth0Id del empleado
+            String auth0Id = empleado.getUser().getAuthOId();
+
+            // 3. Cambiar estado en la base de datos local
+            Empleado empleadoActualizado = empleadoService.cambiarEstadoEmpleado(id);
+
+            // 4. Cambiar estado en Auth0 (bloquear si se da de baja, desbloquear si se da de alta)
+            User auth0User = usuarioAuth0Service.toggleUserBlockStatus(auth0Id);
+
+            // 5. Determinar el mensaje según el nuevo estado
+            String mensaje = empleadoActualizado.getFechaBaja() == null ?
+                    "Empleado dado de alta y desbloqueado en Auth0" :
+                    "Empleado dado de baja y bloqueado en Auth0";
 
             return ResponseEntity.ok(Map.of(
                     "mensaje", mensaje,
-                    "empleado", empleado
+                    "empleado", empleadoActualizado,
+                    "auth0Status", auth0User.isBlocked() ? "bloqueado" : "desbloqueado"
             ));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));

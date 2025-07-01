@@ -154,4 +154,25 @@ public class UsuarioAuth0Service {
         assignRole(userId, nuevoRolId);
     }
 
+    /**
+     * Cambia el estado de bloqueo de un usuario en Auth0 (bloqueado → desbloqueado o viceversa)
+     * @param userId ID del usuario en Auth0
+     * @return Usuario actualizado
+     * @throws Exception Si ocurre un error durante la operación
+     */
+    public User toggleUserBlockStatus(String userId) throws Exception {
+        // 1. Obtener el usuario y su estado actual
+        User user = managementAPI.users().get(userId, null).execute();
+
+        // 2. Determinar el nuevo estado (opuesto al actual)
+        boolean currentBlockedStatus = user.isBlocked() != null && user.isBlocked();
+        boolean newBlockedStatus = !currentBlockedStatus;
+
+        // 3. Crear objeto para actualización
+        User userUpdate = new User();
+        userUpdate.setBlocked(newBlockedStatus);
+
+        // 4. Actualizar el usuario
+        return managementAPI.users().update(userId, userUpdate).execute();
+    }
 }
